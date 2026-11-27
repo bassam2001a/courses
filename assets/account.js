@@ -146,7 +146,7 @@
     idI.focus();
   }
 
-  window.AplusSync={dirty:dirty};
+  window.AplusSync={dirty:dirty,token:token,url:URL_,key:KEY,uid:function(){return sess&&sess.uid||null;},loggedIn:function(){return !!sess;},login:function(){ if(typeof openModal==='function') openModal(); }};
   document.addEventListener('DOMContentLoaded',function(){ paint(); if(sess) sync(false); });
   if(document.readyState!=='loading'){ paint(); if(sess) sync(false); }
 })();

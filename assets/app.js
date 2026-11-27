@@ -34,6 +34,7 @@
   var ytp=null, ytReady=false, curLesson=null, pending=null, tick=null, apiLoading=false;
   function byId(id){ for(var i=0;i<data.length;i++) if(data[i].id===id) return data[i]; return null; }
   function savePos(){
+    if(window.AplusMedia&&AplusMedia.active()) return;
     if(!ytp||!ytReady||!curLesson||!ytp.getCurrentTime) return;
     var t=0; try{ t=ytp.getCurrentTime()||0; }catch(e){ return; }
     if(t<3) return;
@@ -62,6 +63,17 @@
     document.getElementById('p-title').textContent=pad(l.n)+' · '+l.title;
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
     pl.scrollIntoView({behavior:'smooth',block:'start'});
+    if(window.AplusMedia){
+      if(AplusMedia.canPlay(l)){
+        try{ if(ytp&&ytReady&&ytp.pauseVideo) ytp.pauseVideo(); }catch(e){}
+        AplusMedia.play(l,startAt,{
+          save:function(t){ if(t<3) return; resume.pos[l.id]=Math.floor(t); resume.last=l.id; resume.ts=Date.now(); saveR(); paintResume(); var o=document.getElementById('p-open'); if(o) o.href='https://www.youtube.com/watch?v='+l.id+'&t='+Math.floor(t)+'s'; },
+          end:function(){ resume.pos[l.id]=0; var i=data.indexOf(l); resume.last=(data[i+1]||l).id; saveR(); paintResume(); render(); }
+        });
+        paintResume(); return;
+      }
+      AplusMedia.hide(l);
+    }
     ensureApi(function(){
       if(ytp && ytReady){ ytp.loadVideoById({videoId:l.id,startSeconds:startAt}); return; }
       if(ytp){ pending={id:l.id,t:startAt}; return; }
@@ -154,6 +166,7 @@
             '<div class="meta">'+
               '<span class="dur">'+fmt(l.dur)+'</span>'+((resume.pos[l.id]>0)?'<button class="resume-btn" type="button">كمّل من '+clock(resume.pos[l.id])+'</button>':'')+
               '<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>'+
+              ((window.AplusMedia&&AplusMedia.hasPdf(l))?'<button class="pdf-btn" type="button">PDF</button>':'')+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
             (needPass?'<div class="lock">نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».</div>':'')+
@@ -162,6 +175,7 @@
         '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';
       var rb=li.querySelector('.resume-btn'); if(rb) rb.addEventListener('click',function(){ play(l); });
       li.querySelector('.ttl').addEventListener('click', function(ev){ ev.preventDefault(); play(l); });
+      var pb=li.querySelector('.pdf-btn'); if(pb) pb.addEventListener('click',function(){ AplusMedia.openPdf(l,setFlash); });
       var chk=li.querySelector('input[type=checkbox]');
       chk.addEventListener('change', function(){
         if(chk.checked) progress[l.id]=true; else delete progress[l.id];
