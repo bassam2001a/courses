@@ -15,7 +15,7 @@
   var list=document.getElementById('list'), q=document.getElementById('q');
   var fill=document.getElementById('fill'), cnt=document.getElementById('cnt'), pct=document.getElementById('pct');
   var flashEl=document.getElementById('flash');
-  var filter='all', flash='';
+  var filter='all', flash='', lastResult={id:null,html:''};
 
   function passed(id){ return !!(quiz[id] && quiz[id].passed); }
   function lockedAt(i){ if(i<=0) return false; var prev=data[i-1]; return !!(QUIZ[prev.id] && !passed(prev.id)); }
@@ -48,6 +48,7 @@
     });
     html+='<div class="quiz-actions"><button class="btn primary" type="button" data-act="submit">صحّح</button><span class="res" data-res></span></div>';
     box.innerHTML=html;
+    if(lastResult.id===l.id) box.querySelector('[data-res]').innerHTML=lastResult.html;
     box.querySelector('[data-act=submit]').addEventListener('click', function(){
       var answers=[], missing=false;
       for(var i=0;i<qs.length;i++){
@@ -66,8 +67,9 @@
       quiz[l.id]={score:Math.max(score,prevBest), passed:passed(l.id)||pass};
       saveQ();
       res.innerHTML='<b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+(pass?'':' — جرّب تاني')+detail;
+      lastResult={id:l.id, html:res.innerHTML};
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» — الدرس اللي بعده اتفتح.');
+        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الدرس اللي بعده اتفتح.');
         render();
         var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; }
       }
