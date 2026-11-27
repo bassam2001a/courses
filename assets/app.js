@@ -22,8 +22,9 @@
   function lockedAt(i){ if(i<=0) return false; var prev=data[i-1]; return !!(QUIZ[prev.id] && !passed(prev.id)); }
   function counts(){ var d=0; data.forEach(function(l){ if(progress[l.id]) d++; }); return {d:d,t:data.length}; }
   function paintProgress(){
-    var c=counts(), p=c.t? Math.round(c.d*100/c.t):0;
-    fill.style.width=p+'%'; cnt.textContent=c.d+' من '+c.t+' درس'; pct.textContent=p+'%';
+    var c=counts(), p=c.t? Math.round(c.d*100/c.t):0, left=document.getElementById('left');
+    fill.style.width=p+'%'; cnt.textContent='خلصت '+c.d+' من '+c.t; pct.textContent=p+'%';
+    if(left) left.textContent='باقي '+(c.t-c.d)+' درس';
   }
   function setFlash(msg){ flash=msg; if(flashEl){ flashEl.textContent=msg; flashEl.hidden=!msg; } }
 
@@ -94,16 +95,23 @@
       li.setAttribute('data-id', l.id);
       var hasNote=!!(notes[l.id]&&notes[l.id].trim());
       var qz=QUIZ[l.id], qp=passed(l.id);
+      var thumb='<img class="thumb" loading="lazy" decoding="async" alt="" width="84" height="47" src="https://i.ytimg.com/vi/'+l.id+'/mqdefault.jpg" onerror="this.style.visibility=\'hidden\'">';
       li.innerHTML =
         '<div class="row">'+
           '<input type="checkbox" aria-label="خلصت الدرس" '+(progress[l.id]?'checked':'')+(locked?' disabled':'')+'>'+
-          '<span class="num">'+pad(l.n)+'</span>'+
-          (locked
-            ? '<span class="ttl">'+esc(l.title)+'</span>'
-            : '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>')+
-          '<span class="dur">'+fmt(l.dur)+'</span>'+
-          (locked?'':'<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>')+
-          (locked?'':(qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':''))+
+          thumb+
+          '<div class="mid">'+
+            '<div class="ttl-line"><span class="num">'+pad(l.n)+'</span>'+
+            (locked
+              ? '<span class="ttl">'+esc(l.title)+'</span>'
+              : '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>')+
+            '</div>'+
+            '<div class="meta">'+
+              '<span class="dur">'+fmt(l.dur)+'</span>'+
+              (locked?'':'<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>')+
+              (locked?'':(qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':''))+
+            '</div>'+
+          '</div>'+
         '</div>'+
         (locked?'<div class="lock">🔒 خلّص اختبار الدرس اللي قبله الأول عشان يتفتح.</div>':'')+
         (locked?'':'<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>');
