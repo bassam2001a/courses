@@ -10,6 +10,7 @@
   var saveQ=function(){ try{localStorage.setItem(KEY_Q,JSON.stringify(quiz));}catch(e){} };
   var fmt=function(s){ var m=Math.round(s/60); if(m<60) return m+' د'; var h=Math.floor(m/60), r=m%60; return h+' س'+(r?' '+r+' د':''); };
   var pad=function(n){ return n<10?('0'+n):(''+n); };
+  var iso=function(s){ return String(s).replace(/[A-Za-z][A-Za-z0-9+.#\-\/]*(?: [A-Za-z0-9][A-Za-z0-9+.#\-\/]*)*/g, function(m){ return '\u2066'+m+'\u2069'; }); };
   var esc=function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
 
   var list=document.getElementById('list'), q=document.getElementById('q');
@@ -40,9 +41,9 @@
     var qs=QUIZ[l.id].q;
     var html='<p class="quiz-note">'+qs.length+' أسئلة على موضوع الدرس من مواضيع امتحان A+ — مش مفرّغة من كلام الفيديو. لازم '+PASS+'% عشان الدرس اللي بعده يتفتح.</p>';
     qs.forEach(function(item, qi){
-      html+='<div class="q"><p>'+esc((qi+1)+'. '+item.q)+'</p>';
+      html+='<div class="q"><p>'+esc(iso((qi+1)+'. '+item.q))+'</p>';
       item.o.forEach(function(op, oi){
-        html+='<label><input type="radio" name="q'+l.id+'-'+qi+'" value="'+oi+'"><span>'+esc(op)+'</span></label>';
+        html+='<label><input type="radio" name="q'+l.id+'-'+qi+'" value="'+oi+'"><span>'+esc(iso(op))+'</span></label>';
       });
       html+='</div>';
     });
@@ -60,7 +61,7 @@
       var correct=0, detail='';
       qs.forEach(function(item, i){
         if(answers[i]===item.a) correct++;
-        else detail+='<div class="why"><b>س'+(i+1)+':</b> الصح «'+esc(item.o[item.a])+'» — '+esc(item.w)+'</div>';
+        else detail+='<div class="why"><b>س'+(i+1)+':</b> الصح «'+esc(iso(item.o[item.a]))+'» — '+esc(iso(item.w))+'</div>';
       });
       var score=Math.round(correct*100/qs.length), pass=score>=PASS;
       var prevBest=(quiz[l.id]&&quiz[l.id].score)||0;
