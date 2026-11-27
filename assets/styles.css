@@ -62,7 +62,7 @@ footer{color:var(--muted);font-size:13px;padding:28px 0 0}
 .lesson.done{background:#fbfdfc}
 .row{display:flex;align-items:center;gap:10px}
 .num{font-variant-numeric:tabular-nums;font-size:12px;font-weight:700;color:var(--muted);min-width:22px}
-.ttl{flex:1;font-size:15px;line-height:1.45;word-break:break-word}
+.ttl{flex:1;font-size:15px;line-height:1.45;word-break:break-word;unicode-bidi:plaintext;text-align:right}
 .lesson.done .ttl{color:var(--muted);text-decoration:line-through;text-decoration-color:#c7ced6}
 .dur{font-size:12px;color:var(--muted);white-space:nowrap;background:#f2f4f7;padding:2px 7px;border-radius:8px}
 input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;flex:0 0 20px}
