@@ -53,7 +53,14 @@
     window.onYouTubeIframeAPIReady=function(){ if(prev) prev(); cb(); };
     if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
   }
+  function gated(l){ return !!(window.QUIZ_GATE&&QUIZ_GATE[l.id]&&QUIZ[l.id]&&!passed(l.id)); }
   function play(l, startAt){
+    if(gated(l)){
+      setFlash('حل اختبار الدرس «'+l.title+'» الأول عشان الفيديو يتفتح.');
+      var gb=list.querySelector('[data-id="'+l.id+'"] .quiz');
+      if(gb){ gb.hidden=false; gb.scrollIntoView({behavior:'smooth',block:'center'}); }
+      return;
+    }
     var pl=document.getElementById('player'); if(!pl) return;
     if(curLesson && curLesson!==l) savePos();
     pl.hidden=false;
@@ -99,7 +106,7 @@
   function buildQuiz(li, l){
     var box=document.createElement('div'); box.className='quiz'; box.hidden=true;
     var qs=QUIZ[l.id].q;
-    var html='<p class="quiz-note">'+qs.length+' أسئلة على موضوع الدرس من مواضيع امتحان A+ — مش مفرّغة من كلام الفيديو. لازم '+PASS+'% عشان تسجّل الدرس ده كـ«خلصت».</p>';
+    var html='<p class="quiz-note">'+qs.length+' أسئلة من ملخص الدرس. جاوب على الكل، ولازم '+PASS+'% (3 من 5) عشان الفيديو يتفتح وتقدر تعلّم الدرس «خلصت». تقدر تعيد المحاولة.'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'':' (الاختبار ده مش بيقفل الفيديو.)')+'</p>';
     qs.forEach(function(item, qi){
       html+='<div class="q"><p>'+esc(iso((qi+1)+'. '+item.q))+'</p>';
       item.o.forEach(function(op, oi){
@@ -130,7 +137,7 @@
       res.innerHTML='<b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+(pass?'':' — جرّب تاني')+detail;
       lastResult={id:l.id, html:res.innerHTML};
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — تقدر تعلّم الدرس ده «خلصت» دلوقتي.');
+        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الفيديو اتفتح وتقدر تعلّم الدرس «خلصت».');
         render();
         var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; }
       }
@@ -169,7 +176,7 @@
               ((window.AplusMedia&&AplusMedia.hasPdf(l))?'<button class="pdf-btn" type="button">PDF</button>':'')+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
-            (needPass?'<div class="lock">نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».</div>':'')+
+            (needPass?'<div class="lock">'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'حل اختبار الدرس عشان الفيديو يتفتح وتقدر تعلّمه «خلصت».':'نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».')+'</div>':'')+
           '</div>'+
         '</div>'+
         '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';
