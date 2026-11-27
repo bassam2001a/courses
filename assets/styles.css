@@ -76,3 +76,5 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 }
 .note-box textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
 .empty{color:var(--muted);text-align:center;padding:28px 0;font-size:14px}
+
+.notice{background:#fdf7ee;border:1px solid #f3e3cd;color:#8a5a12;border-radius:12px;padding:10px 13px;font-size:13.5px;margin-top:14px}
