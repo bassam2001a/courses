@@ -54,6 +54,14 @@
     if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
   }
   function gatedBy(l){ var i=data.indexOf(l); if(i<=0) return null; var p=data[i-1]; return (window.QUIZ_GATE&&QUIZ_GATE[p.id]&&QUIZ[p.id]&&!passed(p.id))?p:null; }
+  function paintPlayerQuiz(l){
+    var pq=document.getElementById('p-quiz'); if(!pq) return;
+    pq.innerHTML=''; if(!QUIZ[l.id]) return;
+    var b=document.createElement('button'); b.type='button'; b.className='btn primary'; b.textContent='حل الاختبار';
+    var box=buildQuiz(pq,l,true);
+    b.addEventListener('click',function(){ box.hidden=!box.hidden; if(!box.hidden) box.scrollIntoView({behavior:'smooth',block:'center'}); });
+    pq.insertBefore(b,pq.firstChild);
+  }
   function play(l, startAt){
     var gp=gatedBy(l);
     if(gp){
@@ -68,7 +76,7 @@
     if(startAt==null) startAt=resume.pos[l.id]||0;
     if(startAt>0 && l.dur && startAt>l.dur-15) startAt=0;
     curLesson=l; resume.last=l.id; saveR();
-    winStart=data.indexOf(l); render();
+    winStart=data.indexOf(l); render(); paintPlayerQuiz(l);
     document.getElementById('p-title').textContent=pad(l.n)+' · '+l.title;
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
     pl.scrollIntoView({behavior:'smooth',block:'start'});
@@ -105,7 +113,7 @@
     box.querySelector('button').onclick=function(){ play(l); };
   }
 
-  function buildQuiz(li, l){
+  function buildQuiz(li, l, inPlayer){
     var box=document.createElement('div'); box.className='quiz'; box.hidden=true;
     var qs=QUIZ[l.id].q, gate=!!(window.QUIZ_GATE&&QUIZ_GATE[l.id]), nxt=data[data.indexOf(l)+1];
     var step=0, answers=[];
@@ -121,15 +129,19 @@
       quiz[l.id]={score:Math.max(score,prevBest), passed:passed(l.id)||pass};
       saveQ();
       var html='<div class="res"><b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+detail+'</div>'+
-        '<div class="quiz-actions"><button class="btn" type="button" data-act="retry">'+(pass?'أعد الاختبار':'جرّب تاني')+'</button></div>';
+        '<div class="quiz-actions"><button class="btn" type="button" data-act="retry">'+(pass?'أعد الاختبار':'جرّب تاني')+'</button>'+(nxt?'<button class="btn primary" type="button" data-act="next"'+((pass||!gate)?'':' disabled')+'>الدرس التالي ←</button>':'')+'</div>';
       lastResult={id:l.id, html:html};
       box.innerHTML=html;
-      box.querySelector('[data-act=retry]').addEventListener('click', function(){ step=0; answers=[]; lastResult={id:null,html:''}; paint(); });
+      bindRes();
       if(pass){
         setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'%'+(gate&&nxt?' — الدرس اللي بعده اتفتح.':' — تقدر تعلّم الدرس ده «خلصت».'));
         render();
-        var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; }
+        if(!inPlayer){ var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; } }
       }
+    }
+    function bindRes(){
+      var rb=box.querySelector('[data-act=retry]'); if(rb) rb.addEventListener('click', function(){ step=0; answers=[]; lastResult={id:null,html:''}; paint(); });
+      var nb=box.querySelector('[data-act=next]'); if(nb) nb.addEventListener('click', function(){ if(nb.disabled) return; play(nxt); });
     }
     function paint(){
       var item=qs[step];
@@ -145,7 +157,7 @@
         });
       });
     }
-    if(lastResult.id===l.id){ box.innerHTML=lastResult.html; var rb=box.querySelector('[data-act=retry]'); if(rb) rb.addEventListener('click', function(){ step=0; answers=[]; lastResult={id:null,html:''}; paint(); }); }
+    if(lastResult.id===l.id){ box.innerHTML=lastResult.html; bindRes(); }
     else paint();
     li.appendChild(box);
     return box;

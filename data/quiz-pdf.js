@@ -1978,6 +1978,66 @@ window.QUIZ = Object.assign(window.QUIZ || {}, {
 "w": "مفيش Broadcast في IPv6."
 }
 ]
+},
+"pAZcxzC2K-E": {
+"t": "33-CompTIA A+ | Connecting to and Setting up Networks Part 4 Network Protocols",
+"q": [
+{
+"q": "إيه الفرق بين HTTP و HTTPS؟",
+"o": [
+"HTTP مشفّر و HTTPS لأ",
+"HTTPS أسرع دايماً",
+"HTTPS هو HTTP متدمج مع تشفير زي SSL أو TLS",
+"مفيش فرق"
+],
+"a": 2,
+"w": "HTTP مش آمن، فمهم في البنوك مثلاً."
+},
+{
+"q": "إيه ميزة TCP؟",
+"o": [
+"مخصص للبث المباشر",
+"بيبعت من غير تأكيد",
+"بيتأكد إن الداتا وصلت فعلاً ويعيد الإرسال لو التأكيد ما جاش",
+"أسرع من UDP دايماً"
+],
+"a": 2,
+"w": "ده مضمون لكن أبطأ شوية."
+},
+{
+"q": "ليه UDP مناسب للبث المباشر (Streaming)؟",
+"o": [
+"لأنه مضمون",
+"لأنه مشفّر",
+"لأن السرعة أهم من إن كل حاجة توصل، و TCP ممكن يعمل تأخير",
+"لأنه بيعيد الإرسال"
+],
+"a": 2,
+"w": "UDP بيبعت وخلاص من غير تأكيد."
+},
+{
+"q": "أي بروتوكول مخصص لإرسال الإيميل؟",
+"o": [
+"POP",
+"FTP",
+"SMTP",
+"IMAP"
+],
+"a": 2,
+"w": "POP و IMAP للاستقبال."
+},
+{
+"q": "إيه العيب في POP؟",
+"o": [
+"لو الهارد باظ ضاعت كل الرسائل ومفيش نسخة",
+"مش بيحمّل الرسائل",
+"بيحتاج إنترنت دايماً",
+"بيبعت بس"
+],
+"a": 0,
+"w": "الرسالة بتتحمل على جهازك وتتشال من السيرفر، و IMAP بيسيب نسخة."
+}
+]
 }
 });
-window.QUIZ_GATE = {"zIpF33NCgrA": 1, "3ewpchhw3nA": 1, "HCdzduik1ZE": 1, "GQFeSgssCAo": 1, "A9rExIbfyzs": 1, "3ff7XXnZET0": 1, "5I2HMPNanTo": 1, "7psnHQXElyk": 1, "uUmFTIJ4sBk": 1, "HiMjKMOjAzA": 1, "hKDtYu-FUbY": 1, "z4yqa1vBRAc": 1, "zkMLzPCXLRo": 1, "WYKNyiqGLlc": 1, "2gUwqcZk3JE": 1, "QKHaVQNrJqA": 1, "U_PSPVcCYi0": 1, "dfZNx5xD644": 1, "-hzDwesStq0": 1, "hcGn3zKwm98": 1, "PFLg12OBlwc": 1, "m_JIvFFghJg": 1, "Fx4aSN3sjKI": 1, "53VvXupXASw": 1, "KNIzw0HftVg": 1, "QoVopdv0qds": 1, "bFgnUfr8Izg": 1, "Qna640T0fNE": 1, "Gornp-tO0uA": 1, "qIXqS421Meg": 1, "PsjE96NTb7k": 1, "P4kf3adHxa0": 1, "oVv12se6BmM": 1};
+window.QUIZ_GATE = {"zIpF33NCgrA": 1, "3ewpchhw3nA": 1, "HCdzduik1ZE": 1, "GQFeSgssCAo": 1, "A9rExIbfyzs": 1, "3ff7XXnZET0": 1, "5I2HMPNanTo": 1, "7psnHQXElyk": 1, "uUmFTIJ4sBk": 1, "HiMjKMOjAzA": 1, "hKDtYu-FUbY": 1, "z4yqa1vBRAc": 1, "zkMLzPCXLRo": 1, "WYKNyiqGLlc": 1, "2gUwqcZk3JE": 1, "QKHaVQNrJqA": 1, "U_PSPVcCYi0": 1, "dfZNx5xD644": 1, "-hzDwesStq0": 1, "hcGn3zKwm98": 1, "PFLg12OBlwc": 1, "m_JIvFFghJg": 1, "Fx4aSN3sjKI": 1, "53VvXupXASw": 1, "KNIzw0HftVg": 1, "QoVopdv0qds": 1, "bFgnUfr8Izg": 1, "Qna640T0fNE": 1, "Gornp-tO0uA": 1, "qIXqS421Meg": 1, "PsjE96NTb7k": 1, "P4kf3adHxa0": 1, "oVv12se6BmM": 1, "pAZcxzC2K-E": 1};

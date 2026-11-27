@@ -32,16 +32,21 @@
     return sign(P[l.n]).then(function(u){ return fetch(u); }).then(function(r){ if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.blob(); })
       .then(function(b){ var pb=new Blob([b],{type:'application/pdf'}); if(hasCache()) caches.open(CACHE).then(function(c){ return c.put(pkey(l),new Response(pb,{headers:{'Content-Type':'application/pdf'}})); }).catch(function(){}); return pb; });
   }
-  function openBlob(w,b){ var u=URL.createObjectURL(b); if(w) w.location.href=u; else location.href=u; }
+  function openBlob(w,b,title){
+    var u=URL.createObjectURL(b), o=document.createElement('div'); o.className='pdfov';
+    o.innerHTML='<div class="pdfov-bar"><b>'+(title||'ملخص الدرس')+'</b><span><a class="btn primary" target="_blank" rel="noopener" href="'+u+'">فتح كامل ↗</a><button type="button" class="btn">إغلاق ✕</button></span></div><iframe title="PDF" src="'+u+'#view=FitH"></iframe>';
+    o.querySelector('button').onclick=function(){ o.remove(); setTimeout(function(){ try{ URL.revokeObjectURL(u); }catch(e){} },60000); };
+    document.body.appendChild(o);
+  }
   function openPdf(l,flash){
     var s=S(), say2=flash||say;
-    var w=window.open('about:blank','_blank');
+    var w=null;
     getPdfSaved(l).then(function(b){
-      if(b && unlocked() && (navigator.onLine===false || !s || !s.loggedIn())){ openBlob(w,b); return; }
+      if(b && unlocked() && (navigator.onLine===false || !s || !s.loggedIn())){ openBlob(w,b,'PDF · '+l.n); return; }
       if(!s||!s.loggedIn()){ if(w) w.close(); if(b) say2('ادخل كود الأوفلاين مرة وإنت أونلاين عشان الملخصات المحفوظة تفتح.'); else { say2('سجّل دخول الأول عشان تفتح ملخص الـPDF.'); if(s&&s.login) s.login(); } return; }
       if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){});
-      return fetchPdf(l).then(function(pb){ openBlob(w,pb); }).catch(function(e){
-        if(b && unlocked()){ openBlob(w,b); return; }
+      return fetchPdf(l).then(function(pb){ openBlob(w,pb,'PDF · '+l.n); }).catch(function(e){
+        if(b && unlocked()){ openBlob(w,b,'PDF · '+l.n); return; }
         if(w) w.close();
         say2(e.status===400||e.status===403||e.status===404?'الحساب ده مش متفعّل لملفات الـPDF.':(navigator.onLine===false?'مفيش نت، والـPDF ده مش محفوظ. افتحه مرة وإنت أونلاين.':'مقدرتش أفتح الـPDF، جرّب تاني.'));
       });
