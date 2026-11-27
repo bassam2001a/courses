@@ -3,14 +3,14 @@
   var data = window.APLUS || [], QUIZ = window.QUIZ || {}, PASS = 60;
   var progress = {}, notes = {}, quiz = {}, resume = {last:null,pos:{}};
   try{ var rr=JSON.parse(localStorage.getItem(KEY_R)||'null'); if(rr&&rr.pos) resume=rr; }catch(e){}
-  var saveR=function(){ try{localStorage.setItem(KEY_R,JSON.stringify(resume));}catch(e){} };
+  var saveR=function(){ try{localStorage.setItem(KEY_R,JSON.stringify(resume));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
   var clock=function(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+pad(m):m)+':'+pad(x); };
   try{ progress = JSON.parse(localStorage.getItem(KEY_P)||'{}')||{}; }catch(e){ progress={}; }
   try{ notes = JSON.parse(localStorage.getItem(KEY_N)||'{}')||{}; }catch(e){ notes={}; }
   try{ quiz = JSON.parse(localStorage.getItem(KEY_Q)||'{}')||{}; }catch(e){ quiz={}; }
-  var saveP=function(){ try{localStorage.setItem(KEY_P,JSON.stringify(progress));}catch(e){} };
-  var saveN=function(){ try{localStorage.setItem(KEY_N,JSON.stringify(notes));}catch(e){} };
-  var saveQ=function(){ try{localStorage.setItem(KEY_Q,JSON.stringify(quiz));}catch(e){} };
+  var saveP=function(){ try{localStorage.setItem(KEY_P,JSON.stringify(progress));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
+  var saveN=function(){ try{localStorage.setItem(KEY_N,JSON.stringify(notes));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
+  var saveQ=function(){ try{localStorage.setItem(KEY_Q,JSON.stringify(quiz));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
   var fmt=function(s){ var m=Math.round(s/60); if(m<60) return m+' د'; var h=Math.floor(m/60), r=m%60; return h+' س'+(r?' '+r+' د':''); };
   var pad=function(n){ return n<10?('0'+n):(''+n); };
   var iso=function(s){ return String(s).replace(/[A-Za-z][A-Za-z0-9+.#\-\/]*(?: [A-Za-z0-9][A-Za-z0-9+.#\-\/]*)*/g, function(m){ return '\u2066'+m+'\u2069'; }); };
