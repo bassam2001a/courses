@@ -1,5 +1,5 @@
-var C='aplus-shell-v58';
-var SHELL=['./','aplus.html','index.html','assets/styles.css?v=58','assets/account.js?v=58','assets/app.js?v=58','assets/media.js?v=58','data/aplus.js?v=58','data/media.js?v=58','data/quizzes.js?v=58','data/quiz-b1.js?v=58','data/quiz-b2.js?v=58','data/quiz-b3.js?v=58','data/quiz-b4.js?v=58','data/quiz-b5.js?v=58','data/quiz-pdf.js?v=58'];
+var C='aplus-shell-v59';
+var SHELL=['./','aplus.html','index.html','assets/styles.css?v=59','assets/account.js?v=59','assets/app.js?v=59','assets/media.js?v=59','data/aplus.js?v=59','data/media.js?v=59','data/quizzes.js?v=59','data/quiz-b1.js?v=59','data/quiz-b2.js?v=59','data/quiz-b3.js?v=59','data/quiz-b4.js?v=59','data/quiz-b5.js?v=59','data/quiz-pdf.js?v=59'];
 self.addEventListener('install',function(e){ e.waitUntil(caches.open(C).then(function(c){ return Promise.all(SHELL.map(function(u){ return c.add(u).catch(function(){}); })); }).then(function(){ return self.skipWaiting(); })); });
 self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return k.indexOf('aplus-shell-')===0&&k!==C; }).map(function(k){ return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener('fetch',function(e){
