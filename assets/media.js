@@ -32,7 +32,9 @@
     return sign(P[l.n]).then(function(u){ return fetch(u); }).then(function(r){ if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.blob(); })
       .then(function(b){ var pb=new Blob([b],{type:'application/pdf'}); if(hasCache()) caches.open(CACHE).then(function(c){ return c.put(pkey(l),new Response(pb,{headers:{'Content-Type':'application/pdf'}})); }).catch(function(){}); return pb; });
   }
+  function canPreview(){ return !!navigator.pdfViewerEnabled && !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
   function openBlob(w,b,title){
+    if(w||!canPreview()){ var u0=URL.createObjectURL(b); if(w){ try{ w.location.href=u0; return; }catch(e){} } var a=document.createElement('a'); a.href=u0; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ if(!document.hidden) location.href=u0; },1200); return; }
     var u=URL.createObjectURL(b), o=document.createElement('div'); o.className='pdfov';
     o.innerHTML='<div class="pdfov-bar"><b>'+(title||'ملخص الدرس')+'</b><span><a class="btn primary" target="_blank" rel="noopener" href="'+u+'">فتح كامل ↗</a><button type="button" class="btn">إغلاق ✕</button></span></div><iframe title="PDF" src="'+u+'#view=FitH"></iframe>';
     o.querySelector('button').onclick=function(){ o.remove(); setTimeout(function(){ try{ URL.revokeObjectURL(u); }catch(e){} },60000); };
@@ -40,7 +42,7 @@
   }
   function openPdf(l,flash){
     var s=S(), say2=flash||say;
-    var w=null;
+    var w=canPreview()?null:window.open('about:blank','_blank');
     getPdfSaved(l).then(function(b){
       if(b && unlocked() && (navigator.onLine===false || !s || !s.loggedIn())){ openBlob(w,b,'PDF · '+l.n); return; }
       if(!s||!s.loggedIn()){ if(w) w.close(); if(b) say2('ادخل كود الأوفلاين مرة وإنت أونلاين عشان الملخصات المحفوظة تفتح.'); else { say2('سجّل دخول الأول عشان تفتح ملخص الـPDF.'); if(s&&s.login) s.login(); } return; }
