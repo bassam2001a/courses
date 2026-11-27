@@ -53,7 +53,8 @@
     window.onYouTubeIframeAPIReady=function(){ if(prev) prev(); cb(); };
     if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
   }
-  function gatedBy(l){ var i=data.indexOf(l); if(i<=0) return null; var p=data[i-1]; return (window.QUIZ_GATE&&QUIZ_GATE[p.id]&&QUIZ[p.id]&&!passed(p.id))?p:null; }
+  var QUIZ_GATE_ON=false; /* set to true to require passing the previous lesson's quiz */
+  function gatedBy(l){ if(!QUIZ_GATE_ON) return null; var i=data.indexOf(l); if(i<=0) return null; var p=data[i-1]; return (window.QUIZ_GATE&&QUIZ_GATE[p.id]&&QUIZ[p.id]&&!passed(p.id))?p:null; }
   function paintPlayerQuiz(l){
     var pq=document.getElementById('p-quiz'); if(!pq) return;
     pq.innerHTML=''; if(!QUIZ[l.id]) return;
