@@ -53,11 +53,12 @@
     window.onYouTubeIframeAPIReady=function(){ if(prev) prev(); cb(); };
     if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
   }
-  function gated(l){ return !!(window.QUIZ_GATE&&QUIZ_GATE[l.id]&&QUIZ[l.id]&&!passed(l.id)); }
+  function gatedBy(l){ var i=data.indexOf(l); if(i<=0) return null; var p=data[i-1]; return (window.QUIZ_GATE&&QUIZ_GATE[p.id]&&QUIZ[p.id]&&!passed(p.id))?p:null; }
   function play(l, startAt){
-    if(gated(l)){
-      setFlash('حل اختبار الدرس «'+l.title+'» الأول عشان الفيديو يتفتح.');
-      var gb=list.querySelector('[data-id="'+l.id+'"] .quiz');
+    var gp=gatedBy(l);
+    if(gp){
+      setFlash('الأول اتفرج على «'+gp.title+'» وحل اختباره عشان الدرس ده يتفتح.');
+      var gb=list.querySelector('[data-id="'+gp.id+'"] .quiz');
       if(gb){ gb.hidden=false; gb.scrollIntoView({behavior:'smooth',block:'center'}); }
       return;
     }
@@ -105,26 +106,10 @@
 
   function buildQuiz(li, l){
     var box=document.createElement('div'); box.className='quiz'; box.hidden=true;
-    var qs=QUIZ[l.id].q;
-    var html='<p class="quiz-note">'+qs.length+' أسئلة من ملخص الدرس. جاوب على الكل، ولازم '+PASS+'% (3 من 5) عشان الفيديو يتفتح وتقدر تعلّم الدرس «خلصت». تقدر تعيد المحاولة.'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'':' (الاختبار ده مش بيقفل الفيديو.)')+'</p>';
-    qs.forEach(function(item, qi){
-      html+='<div class="q"><p>'+esc(iso((qi+1)+'. '+item.q))+'</p>';
-      item.o.forEach(function(op, oi){
-        html+='<label><input type="radio" name="q'+l.id+'-'+qi+'" value="'+oi+'"><span>'+esc(iso(op))+'</span></label>';
-      });
-      html+='</div>';
-    });
-    html+='<div class="quiz-actions"><button class="btn primary" type="button" data-act="submit">صحّح</button><span class="res" data-res></span></div>';
-    box.innerHTML=html;
-    if(lastResult.id===l.id) box.querySelector('[data-res]').innerHTML=lastResult.html;
-    box.querySelector('[data-act=submit]').addEventListener('click', function(){
-      var answers=[], missing=false;
-      for(var i=0;i<qs.length;i++){
-        var sel=box.querySelector('input[name="q'+l.id+'-'+i+'"]:checked');
-        if(!sel){ missing=true; answers.push(-1); } else answers.push(parseInt(sel.value,10));
-      }
-      var res=box.querySelector('[data-res]');
-      if(missing){ res.innerHTML='<b class="no">جاوب على كل الأسئلة الأول.</b>'; return; }
+    var qs=QUIZ[l.id].q, gate=!!(window.QUIZ_GATE&&QUIZ_GATE[l.id]), nxt=data[data.indexOf(l)+1];
+    var step=0, answers=[];
+    function note(){ return '<p class="quiz-note">'+qs.length+' أسئلة من ملخص الدرس. اضغط على الإجابة وهتنقل للسؤال اللي بعده. لازم '+PASS+'% ('+Math.ceil(qs.length*PASS/100)+' من '+qs.length+')'+(gate&&nxt?' عشان يتفتح الدرس اللي بعده وتقدر تعلّم الدرس ده «خلصت».':' عشان تقدر تعلّم الدرس ده «خلصت».')+'</p>'; }
+    function showResult(){
       var correct=0, detail='';
       qs.forEach(function(item, i){
         if(answers[i]===item.a) correct++;
@@ -134,14 +119,33 @@
       var prevBest=(quiz[l.id]&&quiz[l.id].score)||0;
       quiz[l.id]={score:Math.max(score,prevBest), passed:passed(l.id)||pass};
       saveQ();
-      res.innerHTML='<b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+(pass?'':' — جرّب تاني')+detail;
-      lastResult={id:l.id, html:res.innerHTML};
+      var html='<div class="res"><b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+detail+'</div>'+
+        '<div class="quiz-actions"><button class="btn" type="button" data-act="retry">'+(pass?'أعد الاختبار':'جرّب تاني')+'</button></div>';
+      lastResult={id:l.id, html:html};
+      box.innerHTML=html;
+      box.querySelector('[data-act=retry]').addEventListener('click', function(){ step=0; answers=[]; lastResult={id:null,html:''}; paint(); });
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الفيديو اتفتح وتقدر تعلّم الدرس «خلصت».');
+        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'%'+(gate&&nxt?' — الدرس اللي بعده اتفتح.':' — تقدر تعلّم الدرس ده «خلصت».'));
         render();
         var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; }
       }
-    });
+    }
+    function paint(){
+      var item=qs[step];
+      var html=note()+'<div class="q"><div class="qstep">سؤال '+(step+1)+' من '+qs.length+'<span class="qbar"><i style="width:'+Math.round(step*100/qs.length)+'%"></i></span></div><p>'+esc(iso(item.q))+'</p>';
+      item.o.forEach(function(op, oi){ html+='<button type="button" class="qopt" data-o="'+oi+'">'+esc(iso(op))+'</button>'; });
+      html+='</div>';
+      box.innerHTML=html;
+      Array.prototype.forEach.call(box.querySelectorAll('.qopt'), function(b){
+        b.addEventListener('click', function(){
+          answers[step]=parseInt(b.getAttribute('data-o'),10);
+          b.classList.add('sel');
+          setTimeout(function(){ step++; if(step>=qs.length) showResult(); else paint(); },180);
+        });
+      });
+    }
+    if(lastResult.id===l.id){ box.innerHTML=lastResult.html; var rb=box.querySelector('[data-act=retry]'); if(rb) rb.addEventListener('click', function(){ step=0; answers=[]; lastResult={id:null,html:''}; paint(); }); }
+    else paint();
     li.appendChild(box);
     return box;
   }
@@ -176,7 +180,7 @@
               ((window.AplusMedia&&AplusMedia.hasPdf(l))?'<button class="pdf-btn" type="button">PDF</button>':'')+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
-            (needPass?'<div class="lock">'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'حل اختبار الدرس عشان الفيديو يتفتح وتقدر تعلّمه «خلصت».':'نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».')+'</div>':'')+
+            (gatedBy(l)?'<div class="lock">🔒 اتفرج على الدرس اللي قبله وحل اختباره الأول.</div>':'')+(needPass?'<div class="lock">'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'حل اختبار الدرس بعد ما تتفرج عليه عشان الدرس اللي بعده يتفتح وتقدر تعلّمه «خلصت».':'نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».')+'</div>':'')+
           '</div>'+
         '</div>'+
         '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';
