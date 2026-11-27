@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b6b5e">
 <title>CompTIA A+ — مكتبة كورساتي</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b6b5e'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/styles.css?v=11">
+<link rel="stylesheet" href="assets/styles.css?v=12">
 </head>
 <body>
 <div class="wrap">
@@ -21,10 +21,12 @@
     </div>
   </header>
 
-  <div class="notice">دوس على اسم أي درس يتشغّل هنا في الصفحة. ملفات التحميل للأوفلاين هتتضاف هنا أول ما تتوفر.</div>
+  <div class="resume" id="resume" hidden></div>
+
+  <div class="notice">دوس على اسم أي درس يتشغّل هنا في الصفحة، والموقع بيفتكر آخر درس ودقيقة وقفت عندها على الجهاز ده.</div>
 
   <div class="player" id="player" hidden>
-    <div class="frame"><iframe id="yt" title="مشغل الدرس" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="frame"><div id="yt"></div></div>
     <div class="player-bar"><b id="p-title"></b><a id="p-open" href="https://www.youtube.com" target="_blank" rel="noopener">افتح على يوتيوب ↗</a></div>
   </div>
 
@@ -35,7 +37,7 @@
       <button class="chip" data-f="todo" aria-pressed="false" type="button">لسه</button>
       <button class="chip" data-f="done" aria-pressed="false" type="button">خلصت</button>
     </div>
-    <button class="btn primary" id="cont" type="button">كمّل من أول درس</button>
+    <button class="btn primary" id="cont" type="button">كمّل من حيث وقفت</button>
     <button class="btn" id="export" type="button">تصدير الملاحظات</button>
   </div>
 
@@ -45,13 +47,13 @@
 
   <footer>الدروس بتفتح على يوتيوب في تاب جديد. التقدم والملاحظات بيتحفظوا في المتصفح على جهازك.</footer>
 </div>
-<script src="data/aplus.js?v=11"></script>
-<script src="data/quizzes.js?v=11"></script>
-<script src="data/quiz-b1.js?v=11"></script>
-<script src="data/quiz-b2.js?v=11"></script>
-<script src="data/quiz-b3.js?v=11"></script>
-<script src="data/quiz-b4.js?v=11"></script>
-<script src="data/quiz-b5.js?v=11"></script>
-<script src="assets/app.js?v=11"></script>
+<script src="data/aplus.js?v=12"></script>
+<script src="data/quizzes.js?v=12"></script>
+<script src="data/quiz-b1.js?v=12"></script>
+<script src="data/quiz-b2.js?v=12"></script>
+<script src="data/quiz-b3.js?v=12"></script>
+<script src="data/quiz-b4.js?v=12"></script>
+<script src="data/quiz-b5.js?v=12"></script>
+<script src="assets/app.js?v=12"></script>
 </body>
 </html>

@@ -1,7 +1,10 @@
 (function(){
-  var KEY_P='aplus-progress-v1', KEY_N='aplus-notes-v1', KEY_Q='aplus-quiz-v1';
+  var KEY_R='aplus-resume-v1', KEY_P='aplus-progress-v1', KEY_N='aplus-notes-v1', KEY_Q='aplus-quiz-v1';
   var data = window.APLUS || [], QUIZ = window.QUIZ || {}, PASS = 60;
-  var progress = {}, notes = {}, quiz = {};
+  var progress = {}, notes = {}, quiz = {}, resume = {last:null,pos:{}};
+  try{ var rr=JSON.parse(localStorage.getItem(KEY_R)||'null'); if(rr&&rr.pos) resume=rr; }catch(e){}
+  var saveR=function(){ try{localStorage.setItem(KEY_R,JSON.stringify(resume));}catch(e){} };
+  var clock=function(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+pad(m):m)+':'+pad(x); };
   try{ progress = JSON.parse(localStorage.getItem(KEY_P)||'{}')||{}; }catch(e){ progress={}; }
   try{ notes = JSON.parse(localStorage.getItem(KEY_N)||'{}')||{}; }catch(e){ notes={}; }
   try{ quiz = JSON.parse(localStorage.getItem(KEY_Q)||'{}')||{}; }catch(e){ quiz={}; }
@@ -28,13 +31,57 @@
   }
   function setFlash(msg){ flash=msg; if(flashEl){ flashEl.textContent=msg; flashEl.hidden=!msg; } }
 
-  function play(l){
+  var ytp=null, ytReady=false, curLesson=null, pending=null, tick=null, apiLoading=false;
+  function byId(id){ for(var i=0;i<data.length;i++) if(data[i].id===id) return data[i]; return null; }
+  function savePos(){
+    if(!ytp||!ytReady||!curLesson||!ytp.getCurrentTime) return;
+    var t=0; try{ t=ytp.getCurrentTime()||0; }catch(e){ return; }
+    if(t<3) return;
+    resume.pos[curLesson.id]=Math.floor(t); resume.last=curLesson.id; resume.ts=Date.now(); saveR();
+  }
+  function onState(ev){
+    if(ev.data===1){ if(!tick) tick=setInterval(function(){ savePos(); paintResume(); },4000); }
+    else { if(tick){ clearInterval(tick); tick=null; } if(ev.data===2) { savePos(); paintResume(); } }
+    if(ev.data===0 && curLesson){
+      resume.pos[curLesson.id]=0; var i=data.indexOf(curLesson); resume.last=(data[i+1]||curLesson).id; saveR(); paintResume(); render();
+    }
+  }
+  function ensureApi(cb){
+    if(window.YT && YT.Player){ cb(); return; }
+    var prev=window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady=function(){ if(prev) prev(); cb(); };
+    if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
+  }
+  function play(l, startAt){
     var pl=document.getElementById('player'); if(!pl) return;
+    if(curLesson && curLesson!==l) savePos();
     pl.hidden=false;
-    document.getElementById('yt').src='https://www.youtube-nocookie.com/embed/'+l.id+'?rel=0&autoplay=1';
+    if(startAt==null) startAt=resume.pos[l.id]||0;
+    if(startAt>0 && l.dur && startAt>l.dur-15) startAt=0;
+    curLesson=l; resume.last=l.id; saveR();
     document.getElementById('p-title').textContent=pad(l.n)+' · '+l.title;
-    document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id;
+    document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
     pl.scrollIntoView({behavior:'smooth',block:'start'});
+    ensureApi(function(){
+      if(ytp && ytReady){ ytp.loadVideoById({videoId:l.id,startSeconds:startAt}); return; }
+      if(ytp){ pending={id:l.id,t:startAt}; return; }
+      ytp=new YT.Player('yt',{host:'https://www.youtube-nocookie.com',videoId:l.id,
+        playerVars:{rel:0,autoplay:1,start:startAt,playsinline:1,enablejsapi:1,origin:location.origin},
+        events:{onReady:function(){ ytReady=true; if(pending){ ytp.loadVideoById({videoId:pending.id,startSeconds:pending.t}); pending=null; } },onStateChange:onState}});
+    });
+    paintResume();
+  }
+  window.addEventListener('pagehide', savePos);
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) savePos(); });
+
+  function paintResume(){
+    var box=document.getElementById('resume'); if(!box) return;
+    var l=resume.last&&byId(resume.last);
+    if(!l){ box.hidden=true; return; }
+    var t=resume.pos[l.id]||0;
+    box.hidden=false;
+    box.innerHTML='<div><b>آخر درس وقفت عنده</b><br><span>'+pad(l.n)+' · '+esc(l.title)+'</span><br><span class="at">'+(t>0?'وقفت عند '+clock(t)+' من '+clock(l.dur):'ابدأ من أول الدرس')+'</span></div><button class="btn primary" type="button">'+(t>0?'كمّل من '+clock(t):'ابدأ الدرس')+'</button>';
+    box.querySelector('button').onclick=function(){ play(l); };
   }
 
   function buildQuiz(li, l){
@@ -105,7 +152,7 @@
             '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>'+
             '</div>'+
             '<div class="meta">'+
-              '<span class="dur">'+fmt(l.dur)+'</span>'+
+              '<span class="dur">'+fmt(l.dur)+'</span>'+((resume.pos[l.id]>0)?'<button class="resume-btn" type="button">كمّل من '+clock(resume.pos[l.id])+'</button>':'')+
               '<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>'+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
@@ -113,6 +160,7 @@
           '</div>'+
         '</div>'+
         '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';
+      var rb=li.querySelector('.resume-btn'); if(rb) rb.addEventListener('click',function(){ play(l); });
       li.querySelector('.ttl').addEventListener('click', function(ev){ ev.preventDefault(); play(l); });
       var chk=li.querySelector('input[type=checkbox]');
       chk.addEventListener('change', function(){
@@ -149,11 +197,10 @@
   });
   var cont=document.getElementById('cont');
   if(cont) cont.addEventListener('click', function(){
-    var next=null;
-    for(var i=0;i<data.length;i++){ if(!progress[data[i].id]){ next=data[i]; break; } }
-    if(!next){ alert('خلصت كل الدروس المتاحة 👏'); return; }
-    var el=list.querySelector('[data-id="'+next.id+'"]');
-    if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.outline='2px solid #0b6b5e'; setTimeout(function(){ el.style.outline=''; },1600); }
+    var l=resume.last&&byId(resume.last);
+    if(!l){ for(var i=0;i<data.length;i++){ if(!progress[data[i].id]){ l=data[i]; break; } } }
+    if(!l){ alert('خلصت كل الدروس المتاحة 👏'); return; }
+    play(l);
   });
   var exp=document.getElementById('export');
   if(exp) exp.addEventListener('click', function(){
@@ -163,5 +210,5 @@
     var blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
     var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ملاحظات-كورس-A+.txt'; a.click();
   });
-  paintProgress(); render();
+  paintProgress(); paintResume(); render();
 })();
