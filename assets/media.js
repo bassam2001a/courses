@@ -23,11 +23,40 @@
   function canPlay(l){ if(!V[l.n]) return false; var s=S(); return !!(s&&s.loggedIn()) || (unlocked()&&hasCache()); }
   function hasPdf(l){ return !!P[l.n]; }
   function say(msg){ var f=$('flash'); if(f){ f.textContent=msg; f.hidden=!msg; } }
+  function pkey(l){ return '/offline/pdf/'+P[l.n]; }
+  function getPdfSaved(l){
+    if(!hasCache()||!P[l.n]) return Promise.resolve(null);
+    return caches.open(CACHE).then(function(c){ return c.match(pkey(l)); }).then(function(r){ return r?r.blob():null; }).catch(function(){ return null; });
+  }
+  function fetchPdf(l){
+    return sign(P[l.n]).then(function(u){ return fetch(u); }).then(function(r){ if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.blob(); })
+      .then(function(b){ var pb=new Blob([b],{type:'application/pdf'}); if(hasCache()) caches.open(CACHE).then(function(c){ return c.put(pkey(l),new Response(pb,{headers:{'Content-Type':'application/pdf'}})); }).catch(function(){}); return pb; });
+  }
+  function openBlob(w,b){ var u=URL.createObjectURL(b); if(w) w.location.href=u; else location.href=u; }
   function openPdf(l,flash){
-    var s=S();
-    if(!s||!s.loggedIn()){ (flash||say)('سجّل دخول الأول عشان تفتح ملخص الـPDF.'); if(s&&s.login) s.login(); return; }
+    var s=S(), say2=flash||say;
     var w=window.open('about:blank','_blank');
-    sign(P[l.n]).then(function(u){ if(w) w.location.href=u; else location.href=u; }).catch(function(e){ if(w) w.close(); (flash||say)(e.status===400||e.status===403||e.status===404?'الحساب ده مش متفعّل لملفات الـPDF.':'مقدرتش أفتح الـPDF، جرّب تاني.'); });
+    getPdfSaved(l).then(function(b){
+      if(b && unlocked() && (navigator.onLine===false || !s || !s.loggedIn())){ openBlob(w,b); return; }
+      if(!s||!s.loggedIn()){ if(w) w.close(); if(b) say2('ادخل كود الأوفلاين مرة وإنت أونلاين عشان الملخصات المحفوظة تفتح.'); else { say2('سجّل دخول الأول عشان تفتح ملخص الـPDF.'); if(s&&s.login) s.login(); } return; }
+      if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){});
+      return fetchPdf(l).then(function(pb){ openBlob(w,pb); }).catch(function(e){
+        if(b && unlocked()){ openBlob(w,b); return; }
+        if(w) w.close();
+        say2(e.status===400||e.status===403||e.status===404?'الحساب ده مش متفعّل لملفات الـPDF.':(navigator.onLine===false?'مفيش نت، والـPDF ده مش محفوظ. افتحه مرة وإنت أونلاين.':'مقدرتش أفتح الـPDF، جرّب تاني.'));
+      });
+    });
+  }
+  function savePdfs(){
+    if(busy) return; var s=S();
+    gate().then(function(){
+      busy=true; var ks=Object.keys(P), done=0, fail=0;
+      if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){});
+      return ks.reduce(function(p,k){ return p.then(function(){
+        var l={n:+k}; st('بحمّل الملخصات '+done+' من '+ks.length);
+        return getPdfSaved(l).then(function(b){ if(b){ done++; return; } return fetchPdf(l).then(function(){ done++; }).catch(function(){ fail++; }); });
+      }); }, Promise.resolve()).then(function(){ busy=false; st('اتحفظ '+done+' ملخص'+(fail?' (فشل '+fail+')':'')+' ✓'); });
+    }).catch(function(e){ busy=false; if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
   }
   function hide(){
     var v=mv(); if(v){ try{ v.pause(); }catch(e){} v.hidden=true; v.removeAttribute('src'); v.load&&v.load(); }
@@ -66,9 +95,10 @@
     var x=$('p-extra'); if(!x) return;
     isSaved(l).then(function(saved){
       if(!cur||cur!==l) return;
-      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+'<span class="off-st" id="p-st">'+(msg||'')+'</span>';
+      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+'<button class="btn" type="button" id="p-allpdf">حفظ كل الملخصات أوفلاين</button>'+'<span class="off-st" id="p-st">'+(msg||'')+'</span>';
       $('p-off').onclick=function(){ saved?removeSaved(l):saveOffline(l); };
       var pb=$('p-pdf'); if(pb) pb.onclick=function(){ openPdf(l); };
+      var ap=$('p-allpdf'); if(ap) ap.onclick=savePdfs;
     });
   }
   function st(t){ var e=$('p-st'); if(e) e.textContent=t||''; }
@@ -110,5 +140,7 @@
     }).catch(function(e){ if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
   }
   window.addEventListener('pagehide',flushPos);
+  window.addEventListener('offline',function(){ say('انت أوفلاين. الموقع والاختبارات والتقدم شغالين، والفيديوهات والملخصات المحفوظة بس هي اللي تفتح.'); });
+  window.addEventListener('online',function(){ say(''); });
   window.AplusMedia={canPlay:canPlay,play:play,hide:hide,active:active,hasPdf:hasPdf,openPdf:openPdf};
 })();

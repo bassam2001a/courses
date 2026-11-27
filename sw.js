@@ -1,9 +1,10 @@
-var C='aplus-shell-v15';
-var SHELL=['./','aplus.html','index.html','assets/styles.css?v=15','assets/account.js?v=15','assets/app.js?v=15','assets/media.js?v=15','data/aplus.js?v=15','data/media.js?v=15','data/quizzes.js?v=15','data/quiz-b1.js?v=15','data/quiz-b2.js?v=15','data/quiz-b3.js?v=15','data/quiz-b4.js?v=15','data/quiz-b5.js?v=15','data/quiz-pdf.js?v=15'];
+var C='aplus-shell-v16';
+var SHELL=['./','aplus.html','index.html','assets/styles.css?v=16','assets/account.js?v=16','assets/app.js?v=16','assets/media.js?v=16','data/aplus.js?v=16','data/media.js?v=16','data/quizzes.js?v=16','data/quiz-b1.js?v=16','data/quiz-b2.js?v=16','data/quiz-b3.js?v=16','data/quiz-b4.js?v=16','data/quiz-b5.js?v=16','data/quiz-pdf.js?v=16'];
 self.addEventListener('install',function(e){ e.waitUntil(caches.open(C).then(function(c){ return Promise.all(SHELL.map(function(u){ return c.add(u).catch(function(){}); })); }).then(function(){ return self.skipWaiting(); })); });
 self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return k.indexOf('aplus-shell-')===0&&k!==C; }).map(function(k){ return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener('fetch',function(e){
   var r=e.request; if(r.method!=='GET') return;
   var u=new URL(r.url); if(u.origin!==location.origin) return;
-  e.respondWith(fetch(r).then(function(res){ if(res&&res.ok){ var cp=res.clone(); caches.open(C).then(function(c){ c.put(r,cp); }); } return res; }).catch(function(){ return caches.match(r,{ignoreSearch:false}).then(function(m){ return m||caches.match(r,{ignoreSearch:true}); }); }));
+  var nav=r.mode==='navigate';
+  e.respondWith(fetch(r).then(function(res){ if(res&&res.ok){ var cp=res.clone(); caches.open(C).then(function(c){ c.put(r,cp); }); } return res; }).catch(function(){ return caches.match(r,{ignoreSearch:false}).then(function(m){ return m||caches.match(r,{ignoreSearch:true}); }).then(function(m2){ return m2||(nav?caches.match('aplus.html'):undefined); }); }));
 });
