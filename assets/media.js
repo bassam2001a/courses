@@ -16,6 +16,11 @@
   function isSaved(l){ if(!hasCache()||!V[l.n]) return Promise.resolve(false); return caches.open(CACHE).then(function(c){ return c.match(key(l)); }).then(function(r){ return !!r; }).catch(function(){ return false; }); }
   function sign(path){
     var s=S(); if(!s||!s.loggedIn()) return Promise.reject(new Error('login'));
+    if(path.indexOf('2:')===0){
+      return s.token().then(function(t){
+        return fetch(s.url+'/functions/v1/sign2',{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({path:path.slice(2)})});
+      }).then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.url){ var e=new Error((j&&j.error)||('HTTP '+r.status)); e.status=r.status; throw e; } return j.url; }); });
+    }
     return s.token().then(function(t){
       return fetch(s.url+'/storage/v1/object/sign/videos/'+path,{method:'POST',headers:{apikey:s.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:JSON.stringify({expiresIn:21600})});
     }).then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.signedURL){ var e=new Error((j&&(j.message||j.error))||('HTTP '+r.status)); e.status=r.status; throw e; } return s.url+'/storage/v1'+j.signedURL; }); });
