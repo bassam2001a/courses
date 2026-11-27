@@ -19,7 +19,7 @@
   var list=document.getElementById('list'), q=document.getElementById('q');
   var fill=document.getElementById('fill'), cnt=document.getElementById('cnt'), pct=document.getElementById('pct');
   var flashEl=document.getElementById('flash');
-  var filter='all', flash='', lastResult={id:null,html:''};
+  var winStart=0, filter='all', flash='', lastResult={id:null,html:''};
 
   function passed(id){ return !!(quiz[id] && quiz[id].passed); }
   function lockedAt(i){ if(i<=0) return false; var prev=data[i-1]; return !!(QUIZ[prev.id] && !passed(prev.id)); }
@@ -68,6 +68,7 @@
     if(startAt==null) startAt=resume.pos[l.id]||0;
     if(startAt>0 && l.dur && startAt>l.dur-15) startAt=0;
     curLesson=l; resume.last=l.id; saveR();
+    winStart=data.indexOf(l); render();
     document.getElementById('p-title').textContent=pad(l.n)+' · '+l.title;
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
     pl.scrollIntoView({behavior:'smooth',block:'start'});
@@ -154,7 +155,10 @@
     var term=(q.value||'').trim().toLowerCase();
     list.innerHTML=''; var shown=0;
     setFlash(flash);
+    var vf=(winStart>0&&!term&&filter==='all')?winStart:0, prevDone=false;
     data.forEach(function(l, i){
+      if(i<vf) return;
+      if(vf>0&&!prevDone){ prevDone=true; var pr=document.createElement('li'); pr.className='prevrow'; pr.innerHTML='<button type="button" class="btn">⬆ الدروس السابقة ('+Math.min(5,vf)+')</button>'; pr.querySelector('button').addEventListener('click',function(){ winStart=Math.max(0,winStart-5); render(); }); list.appendChild(pr); }
       if(filter==='done' && !progress[l.id]) return;
       if(filter==='todo' && progress[l.id]) return;
       if(term && l.title.toLowerCase().indexOf(term)===-1) return;
@@ -162,7 +166,7 @@
       var qz=QUIZ[l.id], qp=passed(l.id);
       var needPass = !!qz && !qp;
       var li=document.createElement('li');
-      li.className='lesson'+(progress[l.id]?' done':'');
+      li.className='lesson'+(progress[l.id]?' done':'')+((curLesson&&curLesson===l&&vf>0)?' now':'');
       li.setAttribute('data-id', l.id);
       var hasNote=!!(notes[l.id]&&notes[l.id].trim());
       var thumb='<img class="thumb" loading="lazy" decoding="async" alt="" width="84" height="47" src="https://i.ytimg.com/vi/'+l.id+'/mqdefault.jpg" onerror="this.style.visibility=\'hidden\'">';

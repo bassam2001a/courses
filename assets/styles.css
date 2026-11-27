@@ -151,3 +151,4 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 .qbar i{display:block;height:100%;background:var(--accent)}
 .qopt{display:block;width:100%;text-align:start;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:#fcfcfd;cursor:pointer}
 .qopt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.prevrow{list-style:none;margin:0 0 8px}.prevrow .btn{width:100%}.lesson.now{border-color:var(--accent)}
