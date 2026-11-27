@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b6b5e">
 <title>CompTIA A+ — مكتبة كورساتي</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b6b5e'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/styles.css?v=3">
+<link rel="stylesheet" href="assets/styles.css?v=4">
 </head>
 <body>
 <div class="wrap">
@@ -21,7 +21,12 @@
     </div>
   </header>
 
-  <div class="notice">الدروس بتفتح على يوتيوب في تاب جديد. ملفات التحميل للأوفلاين هتتضاف هنا أول ما تتوفر.</div>
+  <div class="notice">دوس على اسم أي درس يتشغّل هنا في الصفحة. ملفات التحميل للأوفلاين هتتضاف هنا أول ما تتوفر.</div>
+
+  <div class="player" id="player" hidden>
+    <div class="frame"><iframe id="yt" title="مشغل الدرس" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="player-bar"><b id="p-title"></b><a id="p-open" href="https://www.youtube.com" target="_blank" rel="noopener">افتح على يوتيوب ↗</a></div>
+  </div>
 
   <div class="toolbar">
     <input id="q" type="search" placeholder="دوّر على درس…" aria-label="بحث في الدروس">
@@ -38,7 +43,7 @@
 
   <footer>الدروس بتفتح على يوتيوب في تاب جديد. التقدم والملاحظات بيتحفظوا في المتصفح على جهازك.</footer>
 </div>
-<script src="data/aplus.js?v=3"></script>
-<script src="assets/app.js?v=3"></script>
+<script src="data/aplus.js?v=4"></script>
+<script src="assets/app.js?v=4"></script>
 </body>
 </html>
