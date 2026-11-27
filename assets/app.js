@@ -40,7 +40,7 @@
   function buildQuiz(li, l){
     var box=document.createElement('div'); box.className='quiz'; box.hidden=true;
     var qs=QUIZ[l.id].q;
-    var html='<p class="quiz-note">'+qs.length+' أسئلة على موضوع الدرس من مواضيع امتحان A+ — مش مفرّغة من كلام الفيديو. لازم '+PASS+'% عشان الدرس اللي بعده يتفتح.</p>';
+    var html='<p class="quiz-note">'+qs.length+' أسئلة على موضوع الدرس من مواضيع امتحان A+ — مش مفرّغة من كلام الفيديو. لازم '+PASS+'% عشان تسجّل الدرس ده كـ«خلصت».</p>';
     qs.forEach(function(item, qi){
       html+='<div class="q"><p>'+esc(iso((qi+1)+'. '+item.q))+'</p>';
       item.o.forEach(function(op, oi){
@@ -71,7 +71,7 @@
       res.innerHTML='<b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+(pass?'':' — جرّب تاني')+detail;
       lastResult={id:l.id, html:res.innerHTML};
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الدرس اللي بعده اتفتح.');
+        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — تقدر تعلّم الدرس ده «خلصت» دلوقتي.');
         render();
         var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; }
       }
@@ -89,54 +89,50 @@
       if(filter==='todo' && progress[l.id]) return;
       if(term && l.title.toLowerCase().indexOf(term)===-1) return;
       shown++;
-      var locked=lockedAt(i);
+      var qz=QUIZ[l.id], qp=passed(l.id);
+      var needPass = !!qz && !qp;
       var li=document.createElement('li');
-      li.className='lesson'+(progress[l.id]?' done':'')+(locked?' locked':'');
+      li.className='lesson'+(progress[l.id]?' done':'');
       li.setAttribute('data-id', l.id);
       var hasNote=!!(notes[l.id]&&notes[l.id].trim());
-      var qz=QUIZ[l.id], qp=passed(l.id);
       var thumb='<img class="thumb" loading="lazy" decoding="async" alt="" width="84" height="47" src="https://i.ytimg.com/vi/'+l.id+'/mqdefault.jpg" onerror="this.style.visibility=\'hidden\'">';
       li.innerHTML =
         '<div class="row">'+
-          '<input type="checkbox" aria-label="خلصت الدرس" '+(progress[l.id]?'checked':'')+(locked?' disabled':'')+'>'+
+          '<input type="checkbox" aria-label="خلصت الدرس" '+(progress[l.id]?'checked':'')+(needPass?' disabled':'')+'>'+
           thumb+
           '<div class="mid">'+
             '<div class="ttl-line"><span class="num">'+pad(l.n)+'</span>'+
-            (locked
-              ? '<span class="ttl">'+esc(l.title)+'</span>'
-              : '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>')+
+            '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>'+
             '</div>'+
             '<div class="meta">'+
               '<span class="dur">'+fmt(l.dur)+'</span>'+
-              (locked?'':'<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>')+
-              (locked?'':(qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':''))+
+              '<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>'+
+              (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
+            (needPass?'<div class="lock">نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».</div>':'')+
           '</div>'+
         '</div>'+
-        (locked?'<div class="lock">🔒 خلّص اختبار الدرس اللي قبله الأول عشان يتفتح.</div>':'')+
-        (locked?'':'<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>');
-      if(!locked){
-        li.querySelector('.ttl').addEventListener('click', function(ev){ ev.preventDefault(); play(l); });
-        var chk=li.querySelector('input[type=checkbox]');
-        chk.addEventListener('change', function(){
-          if(chk.checked) progress[l.id]=true; else delete progress[l.id];
-          saveP(); li.classList.toggle('done', !!progress[l.id]); paintProgress();
-        });
-        var nb=li.querySelector('.note-btn'), box=li.querySelector('.note-box'), ta=box.querySelector('textarea');
-        nb.addEventListener('click', function(){ box.hidden=!box.hidden; if(!box.hidden) ta.focus(); });
-        var t=null;
-        ta.addEventListener('input', function(){
-          clearTimeout(t);
-          t=setTimeout(function(){
-            var v=ta.value;
-            if(v.trim()) notes[l.id]=v; else delete notes[l.id];
-            saveN(); nb.classList.toggle('has', !!(notes[l.id]&&notes[l.id].trim()));
-          },400);
-        });
-        if(qz){
-          var qb=li.querySelector('.quiz-btn'), qbox=buildQuiz(li, l);
-          qb.addEventListener('click', function(){ qbox.hidden=!qbox.hidden; if(!qbox.hidden) qbox.scrollIntoView({behavior:'smooth',block:'center'}); });
-        }
+        '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';
+      li.querySelector('.ttl').addEventListener('click', function(ev){ ev.preventDefault(); play(l); });
+      var chk=li.querySelector('input[type=checkbox]');
+      chk.addEventListener('change', function(){
+        if(chk.checked) progress[l.id]=true; else delete progress[l.id];
+        saveP(); li.classList.toggle('done', !!progress[l.id]); paintProgress();
+      });
+      var nb=li.querySelector('.note-btn'), box=li.querySelector('.note-box'), ta=box.querySelector('textarea');
+      nb.addEventListener('click', function(){ box.hidden=!box.hidden; if(!box.hidden) ta.focus(); });
+      var t=null;
+      ta.addEventListener('input', function(){
+        clearTimeout(t);
+        t=setTimeout(function(){
+          var v=ta.value;
+          if(v.trim()) notes[l.id]=v; else delete notes[l.id];
+          saveN(); nb.classList.toggle('has', !!(notes[l.id]&&notes[l.id].trim()));
+        },400);
+      });
+      if(qz){
+        var qb=li.querySelector('.quiz-btn'), qbox=buildQuiz(li, l);
+        qb.addEventListener('click', function(){ qbox.hidden=!qbox.hidden; if(!qbox.hidden) qbox.scrollIntoView({behavior:'smooth',block:'center'}); });
       }
       list.appendChild(li);
     });
@@ -154,7 +150,7 @@
   var cont=document.getElementById('cont');
   if(cont) cont.addEventListener('click', function(){
     var next=null;
-    for(var i=0;i<data.length;i++){ if(!progress[data[i].id] && !lockedAt(i)){ next=data[i]; break; } }
+    for(var i=0;i<data.length;i++){ if(!progress[data[i].id]){ next=data[i]; break; } }
     if(!next){ alert('خلصت كل الدروس المتاحة 👏'); return; }
     var el=list.querySelector('[data-id="'+next.id+'"]');
     if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.outline='2px solid #0b6b5e'; setTimeout(function(){ el.style.outline=''; },1600); }
