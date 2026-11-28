@@ -116,7 +116,7 @@
     if(!l){ box.hidden=true; return; }
     var t=resume.pos[l.id]||0;
     box.hidden=false;
-    box.innerHTML='<div><b>آخر درس وقفت عنده</b><br><span>'+numLabel(l)+' · '+esc(cleanTitle(l))+'</span><br><span class="at">'+(t>0?'وقفت عند '+clock(t)+' من '+clock(l.dur):'ابدأ من أول الدرس')+'</span></div><button class="btn primary" type="button">'+(t>0?'كمّل من '+clock(t):'ابدأ الدرس')+'</button>';
+    box.innerHTML='<div><b>آخر درس وقفت عنده</b><br><span class="rs-line"><span class="num">'+numLabel(l)+'</span><span class="rs-t" dir="'+(/^[A-Za-z0-9]/.test(cleanTitle(l))?'ltr':'rtl')+'">'+esc(cleanTitle(l))+'</span></span><br><span class="at">'+(t>0?'وقفت عند '+clock(t)+' من '+clock(l.dur):'ابدأ من أول الدرس')+'</span></div><button class="btn primary" type="button">'+(t>0?'كمّل من '+clock(t):'ابدأ الدرس')+'</button>';
     box.querySelector('button').onclick=function(){ play(l); };
   }
 

@@ -9,7 +9,8 @@
   var $=function(id){ return document.getElementById(id); };
   function rd(k){ try{ return JSON.parse(localStorage.getItem(LK[k])||'null'); }catch(e){ return null; } }
   function wr(k,v){ try{ localStorage.setItem(LK[k],JSON.stringify(v)); }catch(e){} }
-  function local(){ return {progress:rd('progress')||{},notes:rd('notes')||{},quiz:rd('quiz')||{},resume:rd('resume')||{last:null,pos:{}}}; }
+  function rdS(){ try{ return JSON.parse(localStorage.getItem('aplus-streak-v1')||'null'); }catch(e){ return null; } }
+  function local(){ var r=rd('resume')||{last:null,pos:{}}, st=rdS(); if(st&&st.last) r.streak={last:st.last,n:st.n||1}; return {progress:rd('progress')||{},notes:rd('notes')||{},quiz:rd('quiz')||{},resume:r}; }
 
   function toEmail(kind,id){
     id=String(id||'').trim();
@@ -57,6 +58,8 @@
     o.resume={last:newer.last||older.last||null,ts:newer.ts||older.ts||0,pos:{}};
     for(k in (older.pos||{})) o.resume.pos[k]=older.pos[k];
     for(k in (newer.pos||{})) o.resume.pos[k]=newer.pos[k];
+    var sa=ra.streak, sb=rb.streak, sw=!sa?sb:!sb?sa:(sb.last>sa.last?sb:sa.last>sb.last?sa:((sb.n||0)>(sa.n||0)?sb:sa));
+    if(sw) o.resume.streak=sw;
     return o;
   }
   function same(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
@@ -67,7 +70,7 @@
     }).then(function(rows){ meta.dirty=false; meta.at=rows&&rows[0]&&rows[0].updated_at||meta.at; saveMeta(); status('تم الحفظ على حسابك ✓'); });
   }
   function status(s){ var e=$('acc-status'); if(e) e.textContent=s||''; }
-  function applyLocal(st){ wr('progress',st.progress); wr('notes',st.notes); wr('quiz',st.quiz); wr('resume',st.resume); }
+  function applyLocal(st){ wr('progress',st.progress); wr('notes',st.notes); wr('quiz',st.quiz); var r={}, k; for(k in st.resume) if(k!=='streak') r[k]=st.resume[k]; wr('resume',r); if(st.resume&&st.resume.streak){ try{ localStorage.setItem('aplus-streak-v1',JSON.stringify({last:st.resume.streak.last,n:st.resume.streak.n,broke:0})); }catch(e){} } }
   function sync(first){
     if(!sess||busy) return Promise.resolve(); busy=true; status('بيزامن…');
     return pull().then(function(rem){

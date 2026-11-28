@@ -247,3 +247,6 @@ html[data-theme=dark] .lesson:hover{border-color:#34506e}
 .mv-chips[hidden]{display:none}
 .mchip{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:700}
 .mnote{font-size:13px;color:var(--muted)}
+.rs-line{display:flex;align-items:baseline;gap:8px;margin:2px 0}
+.rs-line .rs-t{flex:1;min-width:0}
+.acc+.daily{margin-top:12px}

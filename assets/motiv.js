@@ -38,7 +38,18 @@
     '{%}. مذاكرتك باينة يا هندسة ✓',
     'عدّيت بـ {%}. كده الدرس خلص ✓'
   ];
-  var MILE={10:'أول عشرة في المية خلصت. الأول دايماً أصعب حاجة.',25:'ربع الكورس خلص. كمّل يا هندسة، إنت ماشي صح.',50:'نص الكورس خلص. اللي فاضل زي اللي عدّى.',75:'فاضل ربع واحد. إنت قربت يا باشمهندس.',100:'خلّصت الكورس كله يا باشمهندس بسام. تعبك ماراحش على الأرض.'};
+  var MILE={
+    0:['لسه بدري يا هندسة. درس واحد النهارده وتبقى بدأت.','أول خطوة هي افتح أي درس.','مفيش بداية متأخرة. ابدأ بدرس.','كل اللي خلّص الكورس بدأ بدرس واحد.'],
+    10:['أول عشرة في المية خلصت. الأول دايماً أصعب حاجة.','بدأت صح يا باشمهندس. كمّل بنفس الهدوء.','عدّى أول جزء. الباقي أسهل مما تتخيل.','إيقاعك حلو. متوقفش.'],
+    25:['ربع الكورس خلص. كمّل يا هندسة، إنت ماشي صح.','ربع الكورس وراك. الباقي زيه.','إنت عدّيت الربع الأول. كمّل بالترتيب.','شغلك ثابت يا باشمهندس بسام. كمّل.'],
+    50:['نص الكورس خلص. اللي فاضل زي اللي عدّى.','وصلت للنص يا هندسة. مفيش رجوع.','نص الطريق خلص. كمّل.','اللي خلص أكتر من اللي فاضل.'],
+    75:['فاضل ربع واحد. إنت قربت يا باشمهندس.','تلات أرباع الكورس وراك. شدّ حيلك شوية.','قربت جداً يا هندسة. كمّل.','الباقي قليل. ماتبطّأش دلوقتي.'],
+    100:['خلّصت الكورس كله يا باشمهندس بسام. تعبك ماراحش على الأرض.','الكورس خلص بالكامل. مبروك يا هندسة.','خلّصت كل الدروس. راجع اللي محتاج مراجعة.']
+  };
+  var memo={};
+  function rnd(list,key){ var k='aplus-motiv-'+key, last=-1; try{ last=+localStorage.getItem(k); if(isNaN(last)) last=-1; }catch(e){}
+    var i=Math.floor(Math.random()*list.length); if(list.length>1&&i===last) i=(i+1+Math.floor(Math.random()*(list.length-1)))%list.length;
+    try{ localStorage.setItem(k,i); }catch(e){} return list[i]; }
   var KS='aplus-streak-v1';
   function day(d){ d=d||new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
   function ld(){ try{ return JSON.parse(localStorage.getItem(KS)||'{}')||{}; }catch(e){ return {}; } }
@@ -47,6 +58,7 @@
     if(s.last===t) return;
     s.n=(s.last===day(y))?(s.n||0)+1:1; s.last=t; s.broke=0;
     try{ localStorage.setItem(KS,JSON.stringify(s)); }catch(e){}
+    window.addEventListener('DOMContentLoaded',function(){ if(window.AplusSync) AplusSync.dirty(); });
   }
   function streakText(){
     var s=ld(), y=new Date(), n=s.n||0; if(!s.last) return '';
@@ -59,9 +71,9 @@
     if(n===2) return 'يومين ورا بعض';
     return 'أول يوم. بكره كمّل';
   }
-  function milestone(p){ var k=0; [10,25,50,75,100].forEach(function(m){ if(p>=m) k=m; }); return k?MILE[k]:''; }
+  function milestone(p){ var k=0; [10,25,50,75,100].forEach(function(m){ if(p>=m) k=m; }); if(!(k in memo)) memo[k]=rnd(MILE[k],'m'+k); return memo[k]; }
   window.Motiv={
-    daily:function(){ var d=new Date(); return DAILY[Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)%DAILY.length]; },
+    daily:function(){ return rnd(DAILY,'d'); },
     quiz:function(sc){ return (sc>=100&&Math.random()<.5)?'100%. مفيش غلطة ✓':QUIZ[Math.floor(Math.random()*QUIZ.length)].replace('{%}',sc+'%'); },
     mark:mark, streak:streakText, milestone:milestone
   };
