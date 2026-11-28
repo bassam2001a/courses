@@ -90,7 +90,8 @@
     winStart=data.indexOf(l); render(); paintPlayerQuiz(l);
     document.getElementById('p-title').textContent=numLabel(l)+' · '+cleanTitle(l);
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
-    pl.scrollIntoView({behavior:'smooth',block:'start'});
+    if(window.matchMedia&&matchMedia('(max-width:1023px)').matches){ window.scrollTo(0,0); setTimeout(function(){ window.scrollTo(0,0); },60); }
+    else pl.scrollIntoView({behavior:'smooth',block:'start'});
     if(window.AplusMedia){
       if(AplusMedia.canPlay(l)){
         try{ if(ytp&&ytReady&&ytp.pauseVideo) ytp.pauseVideo(); }catch(e){}

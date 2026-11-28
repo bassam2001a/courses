@@ -253,3 +253,13 @@ html[data-theme=dark] .lesson:hover{border-color:#34506e}
 .brk{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;max-width:min(520px,calc(100vw - 24px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px}
 .brk .brk-t{flex:1 1 200px}
 .brk .brk-b{display:flex;gap:8px}
+/* mobile: while a lesson video is open, hide the clutter above it so the video is first */
+@media(max-width:1023px){
+  .wrap:has(.player:not([hidden]))>.acc,
+  .wrap:has(.player:not([hidden]))>.resume,
+  .wrap:has(.player:not([hidden]))>.notice,
+  .wrap:has(.player:not([hidden]))>header h1,
+  .wrap:has(.player:not([hidden]))>header .sub,
+  .wrap:has(.player:not([hidden]))>header .progress{display:none!important}
+  .wrap:has(.player:not([hidden]))>.player{margin-top:6px}
+}
