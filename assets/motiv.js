@@ -81,7 +81,7 @@
   /* break reminder: 45 minutes of continuous playing */
   var BK='aplus-break-v1', LIMIT=window.__BRK_LIMIT||2700, SNOOZE=600, GAP=300;
   var bs={acc:0,last:0,pend:false}, bnode=null;
-  try{ var t0=JSON.parse(sessionStorage.getItem(BK)||'null'); if(t0) bs=t0; }catch(e){}
+  function bload(){ try{ var t0=JSON.parse(localStorage.getItem(BK)||'null'); if(t0&&t0.d===dkey()){ bs=t0; } else if(t0){ bs={acc:0,last:0,pend:false,d:dkey()}; } }catch(e){} }
   var SK='aplus-study-day';
   function dkey(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function sget(){ try{ var o=JSON.parse(localStorage.getItem(SK)||'null'); if(o&&o.d===dkey()) return o.s|0; }catch(e){} return 0; }
@@ -90,7 +90,8 @@
     if(h===0) return m<=1?'دقيقة':(m===2?'دقيقتين':(m<=10?m+' دقايق':m+' دقيقة'));
     var hs=h===1?'ساعة':(h===2?'ساعتين':h+(h<=10?' ساعات':' ساعة'));
     return m?hs+' و'+(m===1?'دقيقة':(m===2?'دقيقتين':(m<=10?m+' دقايق':m+' دقيقة'))):hs; }
-  function bsave(){ try{ sessionStorage.setItem(BK,JSON.stringify(bs)); }catch(e){} }
+  function bsave(){ bs.d=dkey(); try{ localStorage.setItem(BK,JSON.stringify(bs)); }catch(e){} }
+  bload();
   function fs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
   function bshow(){
     if(bnode||!document.body) return;
@@ -104,15 +105,58 @@
     document.body.appendChild(bnode);
   }
   function btick(){
-    var pl=window.AplusIsPlaying&&window.AplusIsPlaying(), now=Date.now();
+    bload(); var pl=window.AplusIsPlaying&&window.AplusIsPlaying(), now=Date.now();
     if(pl){ bs.acc+=5; bs.last=now; sadd(5); }
-    else if(bs.last&&now-bs.last>GAP*1000){ bs.acc=0; bs.last=0; bs.pend=false; }
-    if(bs.acc>=LIMIT&&!bnode){ if(fs()){ if(!bs.pend){ bs.pend=true; document.title='⏰ '+document.title.replace(/^⏰ /,''); } } else bshow(); }
+    var onBreak=!!(tend&&!tdone);
+    if(onBreak){ if(bnode){ bnode.remove(); bnode=null; } }
+    else if(bs.acc>=LIMIT&&!bnode){ if(fs()){ if(!bs.pend){ bs.pend=true; document.title='⏰ '+document.title.replace(/^⏰ /,''); } } else bshow(); }
     else if(bs.pend&&!fs()&&!bnode) bshow();
     bsave();
   }
   document.addEventListener('fullscreenchange',function(){ if(!fs()&&bs.pend&&!bnode) bshow(); });
   if(window.AplusIsPlaying!==undefined||/(aplus|network|english)\.html/.test(location.pathname)) setInterval(btick,5000);
+
+  /* bottom bar: today's study total + break timer */
+  var TK='aplus-break-timer', stb=null, tpan=null, tend=0, tdone=false, tint=null;
+  try{ tend=+localStorage.getItem(TK)||0; }catch(e){}
+  function mmss(ms){ var t=Math.max(0,Math.ceil(ms/1000)), m=Math.floor(t/60), x=t%60; return (m<10?'0':'')+m+':'+(x<10?'0':'')+x; }
+  function stbPaint(){
+    if(!stb) return;
+    var t=sget(); stb.querySelector('.stb-t').textContent=t>=60?'ذاكرت النهارده '+fmt(t):'لسه ما ذاكرتش النهارده';
+    var bt=stb.querySelector('.stb-b'); bt.textContent=tend&&!tdone?'☕ '+mmss(tend-Date.now()):'☕ بريك';
+  }
+  function tstop(){ tend=0; tdone=false; try{ localStorage.removeItem(TK); }catch(e){} document.title=document.title.replace(/^⏰ /,''); stbPaint(); }
+  function tpaint(){
+    if(!tpan) return;
+    var run=tend&&!tdone;
+    tpan.querySelector('.tp-n').textContent=tdone?'خلص البريك. يلا نكمل 💪':(run?mmss(tend-Date.now()):'خد بريك كام دقيقة؟');
+    tpan.querySelector('.tp-c').hidden=!!(run||tdone);
+    tpan.querySelector('[data-a=stop]').hidden=!run;
+    tpan.querySelector('[data-a=ok]').hidden=!tdone;
+    tpan.querySelector('[data-a=close]').hidden=tdone;
+  }
+  function tstart(min){ if(bnode){ bnode.remove(); bnode=null; } tend=Date.now()+min*60000; tdone=false; try{ localStorage.setItem(TK,String(tend)); }catch(e){} tpaint(); stbPaint(); }
+  function tick1(){
+    if(tend&&!tdone&&Date.now()>=tend){ tdone=true; bload(); bs.acc=0; bs.pend=false; bsave();
+      try{ if(navigator.vibrate) navigator.vibrate([300,150,300]); }catch(e){}
+      try{ var A=window.AudioContext||window.webkitAudioContext, c=new A(), o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination); g.gain.value=.15; o.frequency.value=880; o.start(); setTimeout(function(){ o.stop(); c.close(); },500); }catch(e){}
+      document.title='⏰ '+document.title.replace(/^⏰ /,''); if(tpan) tpan.hidden=false; }
+    stbPaint(); tpaint();
+  }
+  function stbInit(){
+    if(stb||!document.body||!/(aplus|network|english)\.html/.test(location.pathname)) return;
+    stb=document.createElement('div'); stb.className='stb';
+    stb.innerHTML='<span class="stb-t"></span><button type="button" class="btn stb-b">☕ بريك</button>';
+    tpan=document.createElement('div'); tpan.className='stb-p'; tpan.hidden=true; tpan.setAttribute('role','dialog');
+    tpan.innerHTML='<div class="tp-n"></div><div class="tp-c"><button type="button" class="btn" data-m="5">5 دقايق</button><button type="button" class="btn" data-m="10">10 دقايق</button><button type="button" class="btn" data-m="15">15 دقيقة</button></div><div class="tp-a"><button type="button" class="btn" data-a="stop">إلغاء البريك</button><button type="button" class="btn primary" data-a="ok">تمام</button><button type="button" class="btn" data-a="close">إغلاق</button></div>';
+    document.body.appendChild(tpan); document.body.appendChild(stb); document.body.classList.add('has-stb');
+    stb.querySelector('.stb-b').addEventListener('click',function(){ tpan.hidden=!tpan.hidden; tpaint(); });
+    tpan.addEventListener('click',function(e){ var m=e.target.getAttribute&&e.target.getAttribute('data-m'), a=e.target.getAttribute&&e.target.getAttribute('data-a');
+      if(m) tstart(+m); else if(a==='stop'){ tstop(); tpaint(); } else if(a==='ok'){ tstop(); tpan.hidden=true; } else if(a==='close') tpan.hidden=true; });
+    if(tend&&Date.now()>=tend) { tdone=true; bload(); bs.acc=0; bs.pend=false; bsave(); tpan.hidden=false; }
+    tpaint(); stbPaint(); tint=setInterval(tick1,1000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',stbInit); else stbInit();
   window.Motiv.studyToday=sget; window.Motiv.fmt=fmt;
   window.Motiv.breakNow=function(){ bs.acc=LIMIT; bs.last=Date.now(); btick(); };
   window.addEventListener('DOMContentLoaded',function(){
