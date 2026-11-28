@@ -129,13 +129,14 @@
       var prevBest=(quiz[l.id]&&quiz[l.id].score)||0;
       quiz[l.id]={score:Math.max(score,prevBest), passed:passed(l.id)||pass};
       saveQ();
+      if(pass && !progress[l.id]){ progress[l.id]=true; saveP(); paintProgress(); }
       var html='<div class="res"><b class="'+(pass?'ok':'no')+'">'+score+'% ('+correct+' من '+qs.length+') — '+(pass?'نجحت':'لسه')+'</b>'+detail+'</div>'+
         '<div class="quiz-actions"><button class="btn" type="button" data-act="retry">'+(pass?'أعد الاختبار':'جرّب تاني')+'</button>'+(nxt?'<button class="btn primary" type="button" data-act="next"'+((pass||!gate)?'':' disabled')+'>الدرس التالي ←</button>':'')+'</div>';
       lastResult={id:l.id, html:html};
       box.innerHTML=html;
       bindRes();
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'%'+(gate&&nxt?' — الدرس اللي بعده اتفتح.':' — تقدر تعلّم الدرس ده «خلصت».'));
+        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الدرس اتعلّم «خلصت» تلقائي ✓');
         render();
         if(!inPlayer){ var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; } }
       }
@@ -195,6 +196,7 @@
               '<span class="dur">'+fmt(l.dur)+'</span>'+((resume.pos[l.id]>0)?'<button class="resume-btn" type="button">كمّل من '+clock(resume.pos[l.id])+'</button>':'')+
               '<button class="note-btn'+(hasNote?' has':'')+'" type="button">ملاحظة</button>'+
               ((window.AplusMedia&&AplusMedia.hasPdf(l))?'<button class="pdf-btn" type="button">PDF</button>':'')+
+              '<span class="ob ob-v" data-k="v"></span>'+((window.AplusMedia&&AplusMedia.hasPdf(l))?'<span class="ob ob-p" data-k="p"></span>':'')+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
             (gatedBy(l)?'<div class="lock">🔒 اتفرج على الدرس اللي قبله وحل اختباره الأول.</div>':'')+(needPass?'<div class="lock">'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'حل اختبار الدرس بعد ما تتفرج عليه عشان الدرس اللي بعده يتفتح وتقدر تعلّمه «خلصت».':'نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».')+'</div>':'')+
@@ -226,9 +228,30 @@
       }
       list.appendChild(li);
     });
-    if(!shown){ var e=document.createElement('li'); e.className='empty'; e.textContent='مفيش دروس مطابقة.'; list.appendChild(e); }
+    if(!shown){ var e=document.createElement('li'); e.className='empty'; e.textContent='مفيش دروس مطابقة.'; list.appendChild(e); }    paintOff();
   }
 
+
+  function paintOff(){
+    if(!(window.AplusMedia&&AplusMedia.savedStatus)) return;
+    AplusMedia.savedStatus().then(function(m){
+      Array.prototype.forEach.call(list.querySelectorAll('.lesson'),function(li){
+        var l=byId(li.getAttribute('data-id')); if(!l) return;
+        var n=String(l.n), v=li.querySelector('.ob-v'), p=li.querySelector('.ob-p');
+        if(v){
+          if(!m.hv[n]){ v.className='ob ob-v yt'; v.textContent='يوتيوب فقط (مفيش أوفلاين)'; }
+          else if(m.v[n]){ v.className='ob ob-v on'; v.textContent='الفيديو: محفوظ أوفلاين ✓'; }
+          else { v.className='ob ob-v off'; v.textContent='الفيديو: مش محفوظ'; }
+        }
+        if(p){
+          if(m.p[n]){ p.className='ob ob-p on'; p.textContent='الملخص: محفوظ ✓'; }
+          else { p.className='ob ob-p off'; p.textContent='الملخص: مش محفوظ'; }
+        }
+      });
+    });
+  }
+  var offT=null;
+  window.addEventListener('aplus-offline',function(){ clearTimeout(offT); offT=setTimeout(paintOff,250); });
   q.addEventListener('input', render);
   Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){
     c.addEventListener('click', function(){

@@ -35,7 +35,7 @@
   }
   function fetchPdf(l){
     return sign(P[l.n]).then(function(u){ return fetch(u); }).then(function(r){ if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.blob(); })
-      .then(function(b){ var pb=new Blob([b],{type:'application/pdf'}); if(hasCache()) caches.open(CACHE).then(function(c){ return c.put(pkey(l),new Response(pb,{headers:{'Content-Type':'application/pdf'}})); }).catch(function(){}); return pb; });
+      .then(function(b){ var pb=new Blob([b],{type:'application/pdf'}); if(hasCache()) caches.open(CACHE).then(function(c){ return c.put(pkey(l),new Response(pb,{headers:{'Content-Type':'application/pdf'}})); }).then(chg).catch(function(){}); return pb; });
   }
   function canPreview(){ return !!navigator.pdfViewerEnabled && !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
   function openBlob(w,b,title){
@@ -114,6 +114,17 @@
       });
     }).catch(function(e){ busy=false; allRun=false; if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
   }
+
+  function savedStatus(){
+    var out={v:{},p:{},hv:{},hp:{}};
+    Object.keys(V).forEach(function(n){ out.hv[n]=1; }); Object.keys(P).forEach(function(n){ out.hp[n]=1; });
+    if(!hasCache()) return Promise.resolve(out);
+    return caches.open(CACHE).then(function(c){
+      var jobs=[]; Object.keys(V).forEach(function(n){ jobs.push(c.match(key({n:+n})).then(function(r){ if(r) out.v[n]=1; })); });
+      Object.keys(P).forEach(function(n){ jobs.push(c.match(pkey({n:+n})).then(function(r){ if(r) out.p[n]=1; })); });
+      return Promise.all(jobs);
+    }).then(function(){ return out; }).catch(function(){ return out; });
+  }
   function hide(){
     var v=mv(); if(v){ try{ v.pause(); }catch(e){} v.hidden=true; v.removeAttribute('src'); v.load&&v.load(); }
     var y=ytEl(); if(y) y.style.display='';
@@ -159,8 +170,9 @@
       var sp=$('p-stop'); if(sp) sp.onclick=function(){ allStop=true; st('بوقّف بعد الملف الحالي…'); };
     });
   }
+  function chg(){ try{ window.dispatchEvent(new Event('aplus-offline')); }catch(e){} }
   function st(t){ lastSt=t||''; var e=$('p-st'); if(e) e.textContent=lastSt; }
-  function removeSaved(l){ caches.open(CACHE).then(function(c){ return c.delete(key(l)); }).then(function(){ paintExtra(l,'اتمسحت النسخة المحفوظة.'); }); }
+  function removeSaved(l){ caches.open(CACHE).then(function(c){ return c.delete(key(l)); }).then(function(){ chg(); paintExtra(l,'اتمسحت النسخة المحفوظة.'); }); }
   function gate(){
     return new Promise(function(res,rej){
       if(unlocked()){ res(); return; }
@@ -193,12 +205,12 @@
         if(!rd) return r.blob();
         return (function pump(){ return rd.read().then(function(x){ if(x.done) return new Blob(parts,{type:'video/mp4'}); parts.push(x.value); got+=x.value.length; if(tot) st('بحمّل '+Math.round(got*100/tot)+'%'); return pump(); }); })();
       }).then(function(b){ return caches.open(CACHE).then(function(c){ return c.put(key(l),new Response(b,{headers:{'Content-Type':'video/mp4'}})); }); })
-      .then(function(){ busy=false; paintExtra(l,'اتحفظ على الجهاز ✓'); })
+      .then(function(){ busy=false; chg(); paintExtra(l,'اتحفظ على الجهاز ✓'); })
       .catch(function(e){ busy=false; st('فشل الحفظ. جرّب تاني.'); });
     }).catch(function(e){ if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
   }
   window.addEventListener('pagehide',flushPos);
   window.addEventListener('offline',function(){ say('انت أوفلاين. الموقع والاختبارات والتقدم شغالين، والفيديوهات والملخصات المحفوظة بس هي اللي تفتح.'); });
   window.addEventListener('online',function(){ say(''); });
-  window.AplusMedia={canPlay:canPlay,play:play,hide:hide,active:active,hasPdf:hasPdf,openPdf:openPdf};
+  window.AplusMedia={savedStatus:savedStatus,canPlay:canPlay,play:play,hide:hide,active:active,hasPdf:hasPdf,openPdf:openPdf};
 })();

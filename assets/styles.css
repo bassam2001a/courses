@@ -161,8 +161,17 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
   .hero h1{font-size:36px}
   .bar{padding:28px 0 12px}
   .bar h1{font-size:28px}
-  .lessons{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .lessons .prevrow{grid-column:1/-1}
+  .lessons{gap:14px}
+  .lesson{padding:18px 22px;border-radius:16px}
+  .row{gap:18px;align-items:center}
+  .row>input[type=checkbox]{margin-top:0;width:24px;height:24px;flex:0 0 24px}
+  .thumb{flex:0 0 208px;width:208px;height:117px;border-radius:12px}
+  .mid{gap:9px}
+  .ttl{font-size:20px;line-height:1.5;font-weight:600}
+  .num{font-size:15px;min-width:26px}
+  .dur{font-size:13.5px;padding:3px 9px}
+  .note-btn,.quiz-btn,.pdf-btn,.resume-btn{font-size:14px;padding:6px 12px}
+  .ob{font-size:13px;padding:4px 11px}
   .lesson{transition:border-color .12s ease,box-shadow .12s ease}
   .lesson:hover{border-color:#cfd6dd}
   .ttl{font-size:15.5px}
@@ -176,8 +185,18 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
   .wrap:has(.player:not([hidden]))>.flash{grid-row:6}
   .wrap:has(.player:not([hidden]))>.lessons{grid-row:7;grid-template-columns:1fr}
   .wrap:has(.player:not([hidden]))>footer{grid-row:8}
-  .wrap:has(.player:not([hidden])) .thumb{flex:0 0 104px;width:104px;height:58px}
+  .wrap:has(.player:not([hidden])) .thumb{flex:0 0 112px;width:112px;height:63px}
+  .wrap:has(.player:not([hidden])) .row{gap:12px}
+  .wrap:has(.player:not([hidden])) .ttl{font-size:16px}
+  .wrap:has(.player:not([hidden])) .lesson{padding:12px 14px}
+  .wrap:has(.player:not([hidden])) .ob{font-size:12px;padding:3px 9px}
 }
 @media(min-width:1600px){
   .wrap{max-width:1400px}
 }
+
+.ob{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;line-height:1.5}
+.ob.on{background:var(--accent-soft);color:var(--accent);border-color:#cfe6e1;font-weight:700}
+.ob.off{background:#f2f4f7;color:var(--muted)}
+.ob.yt{background:#fdf1e3;color:var(--warn);border-color:#f3e3cd}
+.ob:empty{display:none}
