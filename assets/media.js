@@ -1,7 +1,7 @@
 (function(){
   var V=window.APLUS_VIDEOS||{}, P=window.APLUS_PDFS||{};
   var CACHE='aplus-vid-v1', KOK='aplus-off-ok-v1';
-  var cur=null, blobUrl=null, act=false, lastSave=0, hooks=null, busy=false;
+  var allRun=false, allStop=false, lastSt='', cur=null, blobUrl=null, act=false, lastSave=0, hooks=null, busy=false;
   function S(){ return window.AplusSync; }
   function $(id){ return document.getElementById(id); }
   function mv(){ return $('mv'); }
@@ -70,6 +70,50 @@
       }); }, Promise.resolve()).then(function(){ busy=false; st('اتحفظ '+done+' ملخص'+(fail?' (فشل '+fail+')':'')+' ✓'); });
     }).catch(function(e){ busy=false; if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
   }
+
+  function fetchVideoBlob(l,onp){
+    return sign(V[l.n]).then(function(u){ return fetch(u); }).then(function(r){
+      if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; }
+      var tot=+r.headers.get('content-length')||0, got=0, parts=[], rd=r.body&&r.body.getReader?r.body.getReader():null;
+      if(!rd) return r.blob();
+      return (function pump(){ return rd.read().then(function(x){ if(x.done) return new Blob(parts,{type:'video/mp4'}); parts.push(x.value); got+=x.value.length; if(tot&&onp) onp(Math.round(got*100/tot)); return pump(); }); })();
+    });
+  }
+  function saveAll(){
+    if(busy) return;
+    if(!hasCache()){ st('المتصفح ده مش بيدعم الحفظ.'); return; }
+    gate().then(function(){
+      busy=true; allRun=true; allStop=false;
+      var wl=null; try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(function(x){ wl=x; }).catch(function(){}); }catch(e){}
+      if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){});
+      var pk=Object.keys(P).map(Number).sort(function(a,b){return a-b;}), vk=Object.keys(V).map(Number).sort(function(a,b){return a-b;});
+      var total=pk.length+vk.length, done=0, fail=0, skipped=0, full=false;
+      function ref(){ var l=cur; if(l) paintExtra(l,lastSt); }
+      st('بجهّز الحفظ…'); ref();
+      function one(kind,n){
+        if(allStop||full) return Promise.resolve();
+        var l={n:n}, isV=kind==='v', label=(isV?'فيديو ':'ملخص ')+n;
+        var chk=isV?isSaved(l):getPdfSaved(l).then(function(b){ return !!b; });
+        return chk.then(function(have){
+          if(have){ done++; skipped++; return; }
+          st('بحمّل '+label+' ('+(done+fail+1)+' من '+total+')…');
+          var job=isV?fetchVideoBlob(l,function(pc){ st('بحمّل '+label+' '+pc+'% ('+(done+fail+1)+' من '+total+')'); }).then(function(b){ return caches.open(CACHE).then(function(c){ return c.put(key(l),new Response(b,{headers:{'Content-Type':'video/mp4'}})); }); }):fetchPdf(l);
+          return job.then(function(){ done++; }).catch(function(e){
+            if(e&&(e.name==='QuotaExceededError'||/quota/i.test(e.message||''))){ full=true; return; }
+            fail++;
+          });
+        });
+      }
+      var seq=pk.map(function(n){ return ['p',n]; }).concat(vk.map(function(n){ return ['v',n]; }));
+      return seq.reduce(function(p,it){ return p.then(function(){ return one(it[0],it[1]); }); }, Promise.resolve()).then(function(){
+        busy=false; allRun=false; if(wl){ try{ wl.release(); }catch(e){} }
+        var msg=full?'المساحة على الجهاز خلصت. اتحفظ '+done+' من '+total+'. امسح حاجة وكمّل (الضغط تاني بيكمّل من حيث وقف).'
+          :allStop?'وقفت. اتحفظ '+done+' من '+total+'. اضغط تاني عشان تكمّل.'
+          :'اتحفظ '+done+' من '+total+(fail?' (فشل '+fail+'، اضغط تاني يكمّل الباقي)':'')+(skipped?' · منهم '+skipped+' كانوا محفوظين':'')+' ✓';
+        st(msg); ref(); if(!cur) say(msg);
+      });
+    }).catch(function(e){ busy=false; allRun=false; if(e&&e.message==='login'){ st('سجّل دخول الأول.'); if(S()&&S().login) S().login(); } });
+  }
   function hide(){
     var v=mv(); if(v){ try{ v.pause(); }catch(e){} v.hidden=true; v.removeAttribute('src'); v.load&&v.load(); }
     var y=ytEl(); if(y) y.style.display='';
@@ -107,13 +151,15 @@
     var x=$('p-extra'); if(!x) return;
     isSaved(l).then(function(saved){
       if(!cur||cur!==l) return;
-      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+'<button class="btn" type="button" id="p-allpdf">حفظ كل الملخصات أوفلاين</button>'+'<span class="off-st" id="p-st">'+(msg||'')+'</span>';
+      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+(allRun?'<button class="btn" type="button" id="p-stop">إيقاف الحفظ ✕</button>':'<button class="btn primary" type="button" id="p-all">حفظ الكل أوفلاين (ملخصات + فيديوهات)</button><button class="btn" type="button" id="p-allpdf">الملخصات بس</button>')+'<span class="off-st" id="p-st">'+(msg||(allRun?lastSt:''))+'</span>';
       $('p-off').onclick=function(){ saved?removeSaved(l):saveOffline(l); };
       var pb=$('p-pdf'); if(pb) pb.onclick=function(){ openPdf(l); };
       var ap=$('p-allpdf'); if(ap) ap.onclick=savePdfs;
+      var aa=$('p-all'); if(aa) aa.onclick=saveAll;
+      var sp=$('p-stop'); if(sp) sp.onclick=function(){ allStop=true; st('بوقّف بعد الملف الحالي…'); };
     });
   }
-  function st(t){ var e=$('p-st'); if(e) e.textContent=t||''; }
+  function st(t){ lastSt=t||''; var e=$('p-st'); if(e) e.textContent=lastSt; }
   function removeSaved(l){ caches.open(CACHE).then(function(c){ return c.delete(key(l)); }).then(function(){ paintExtra(l,'اتمسحت النسخة المحفوظة.'); }); }
   function gate(){
     return new Promise(function(res,rej){

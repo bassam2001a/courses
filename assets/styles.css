@@ -154,3 +154,30 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 .prevrow{list-style:none;margin:0 0 8px}.prevrow .btn{width:100%}.lesson.now{border-color:var(--accent)}
 .player-quiz{padding:0 12px 12px}.player-quiz .quiz{margin-top:10px}
 .pdfov{position:fixed;inset:0;z-index:50;background:#fff;display:flex;flex-direction:column}.pdfov-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:14px}.pdfov-bar span{display:flex;gap:6px}.pdfov iframe{flex:1;border:0;width:100%}
+
+/* laptop / desktop */
+@media(min-width:1024px){
+  .wrap{max-width:1240px;padding:0 40px 56px}
+  .hero h1{font-size:36px}
+  .bar{padding:28px 0 12px}
+  .bar h1{font-size:28px}
+  .lessons{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .lessons .prevrow{grid-column:1/-1}
+  .lesson{transition:border-color .12s ease,box-shadow .12s ease}
+  .lesson:hover{border-color:#cfd6dd}
+  .ttl{font-size:15.5px}
+  .toolbar{margin:18px 0 14px}
+  .player-extra .btn{font-size:13px}
+  .wrap:has(.player:not([hidden])){display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);column-gap:28px;align-items:start;grid-template-rows:repeat(4,auto) auto auto 1fr auto}
+  .wrap:has(.player:not([hidden]))>header,.wrap:has(.player:not([hidden]))>.acc,.wrap:has(.player:not([hidden]))>.resume,.wrap:has(.player:not([hidden]))>.notice,.wrap:has(.player:not([hidden]))>footer{grid-column:1/-1}
+  .wrap:has(.player:not([hidden]))>.player{grid-column:1;grid-row:5/span 3;position:sticky;top:14px;margin-top:14px;align-self:start;max-height:calc(100vh - 28px);overflow:auto}
+  .wrap:has(.player:not([hidden]))>.toolbar,.wrap:has(.player:not([hidden]))>.flash,.wrap:has(.player:not([hidden]))>.lessons{grid-column:2}
+  .wrap:has(.player:not([hidden]))>.toolbar{grid-row:5;margin-top:14px}
+  .wrap:has(.player:not([hidden]))>.flash{grid-row:6}
+  .wrap:has(.player:not([hidden]))>.lessons{grid-row:7;grid-template-columns:1fr}
+  .wrap:has(.player:not([hidden]))>footer{grid-row:8}
+  .wrap:has(.player:not([hidden])) .thumb{flex:0 0 104px;width:104px;height:58px}
+}
+@media(min-width:1600px){
+  .wrap{max-width:1400px}
+}
