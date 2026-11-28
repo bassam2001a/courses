@@ -4,6 +4,10 @@
   var progress = {}, notes = {}, quiz = {}, resume = {last:null,pos:{}};
   try{ var rr=JSON.parse(localStorage.getItem(KEY_R)||'null'); if(rr&&rr.pos) resume=rr; }catch(e){}
   var saveR=function(){ try{localStorage.setItem(KEY_R,JSON.stringify(resume));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
+  var YT_RE=/(?:^|\|\s*)(\d{1,2})\s*-\s*/;
+  function ytNum(l){ var m=YT_RE.exec(l.title); return m?m[1]:null; }
+  function numLabel(l){ var y=ytNum(l); return y?pad(+y):'مقدمة '+l.n; }
+  function cleanTitle(l){ return ytNum(l)?l.title.replace(YT_RE,'').trim():l.title; }
   var clock=function(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+pad(m):m)+':'+pad(x); };
   try{ progress = JSON.parse(localStorage.getItem(KEY_P)||'{}')||{}; }catch(e){ progress={}; }
   try{ notes = JSON.parse(localStorage.getItem(KEY_N)||'{}')||{}; }catch(e){ notes={}; }
@@ -78,7 +82,7 @@
     if(startAt>0 && l.dur && startAt>l.dur-15) startAt=0;
     curLesson=l; resume.last=l.id; saveR();
     winStart=data.indexOf(l); render(); paintPlayerQuiz(l);
-    document.getElementById('p-title').textContent=pad(l.n)+' · '+l.title;
+    document.getElementById('p-title').textContent=numLabel(l)+' · '+cleanTitle(l);
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
     pl.scrollIntoView({behavior:'smooth',block:'start'});
     if(window.AplusMedia){
@@ -110,7 +114,7 @@
     if(!l){ box.hidden=true; return; }
     var t=resume.pos[l.id]||0;
     box.hidden=false;
-    box.innerHTML='<div><b>آخر درس وقفت عنده</b><br><span>'+pad(l.n)+' · '+esc(l.title)+'</span><br><span class="at">'+(t>0?'وقفت عند '+clock(t)+' من '+clock(l.dur):'ابدأ من أول الدرس')+'</span></div><button class="btn primary" type="button">'+(t>0?'كمّل من '+clock(t):'ابدأ الدرس')+'</button>';
+    box.innerHTML='<div><b>آخر درس وقفت عنده</b><br><span>'+numLabel(l)+' · '+esc(cleanTitle(l))+'</span><br><span class="at">'+(t>0?'وقفت عند '+clock(t)+' من '+clock(l.dur):'ابدأ من أول الدرس')+'</span></div><button class="btn primary" type="button">'+(t>0?'كمّل من '+clock(t):'ابدأ الدرس')+'</button>';
     box.querySelector('button').onclick=function(){ play(l); };
   }
 
@@ -136,7 +140,7 @@
       box.innerHTML=html;
       bindRes();
       if(pass){
-        setFlash('نجحت في اختبار «'+l.title+'» بـ'+score+'% — الدرس اتعلّم «خلصت» تلقائي ✓');
+        setFlash('نجحت في اختبار «'+cleanTitle(l)+'» بـ'+score+'% — الدرس اتعلّم «خلصت» تلقائي ✓');
         render();
         if(!inPlayer){ var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; } }
       }
@@ -189,8 +193,8 @@
           '<input type="checkbox" aria-label="خلصت الدرس" '+(progress[l.id]?'checked':'')+(needPass?' disabled':'')+'>'+
           thumb+
           '<div class="mid">'+
-            '<div class="ttl-line"><span class="num">'+pad(l.n)+'</span>'+
-            '<a class="ttl" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(l.title)+'</a>'+
+            '<div class="ttl-line"><span class="num">'+numLabel(l)+'</span>'+
+            '<a class="ttl" dir="'+(/^[A-Za-z0-9]/.test(cleanTitle(l))?'ltr':'rtl')+'" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+l.id+'">'+esc(cleanTitle(l))+'</a>'+
             '</div>'+
             '<div class="meta">'+
               '<span class="dur">'+fmt(l.dur)+'</span>'+((resume.pos[l.id]>0)?'<button class="resume-btn" type="button">كمّل من '+clock(resume.pos[l.id])+'</button>':'')+
@@ -270,7 +274,7 @@
   var exp=document.getElementById('export');
   if(exp) exp.addEventListener('click', function(){
     var lines=['ملاحظات كورس CompTIA A+ — '+new Date().toLocaleDateString('ar-EG'),''];
-    data.forEach(function(l){ if(notes[l.id]&&notes[l.id].trim()){ lines.push(pad(l.n)+'. '+l.title); lines.push(notes[l.id].trim()); lines.push(''); } });
+    data.forEach(function(l){ if(notes[l.id]&&notes[l.id].trim()){ lines.push(numLabel(l)+'. '+cleanTitle(l)); lines.push(notes[l.id].trim()); lines.push(''); } });
     if(lines.length<=2){ alert('مفيش ملاحظات لسه.'); return; }
     var blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
     var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ملاحظات-كورس-A+.txt'; a.click();

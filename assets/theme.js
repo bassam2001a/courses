@@ -1,5 +1,5 @@
 (function(){
-  var K='aplus-theme', root=document.documentElement;
+  var VER='v74', K='aplus-theme', root=document.documentElement;
   function get(){ try{ return localStorage.getItem(K); }catch(e){ return null; } }
   function sys(){ return window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; }
   function cur(){ return get()||sys(); }
@@ -13,6 +13,7 @@
     var b=document.createElement('button'); b.id='theme-btn'; b.type='button'; b.className='theme-btn';
     b.onclick=function(){ var n=cur()==='dark'?'light':'dark'; try{ localStorage.setItem(K,n); }catch(e){} apply(n); };
     document.body.appendChild(b); apply(cur());
+    var vv=document.createElement('div'); vv.className='ver'; vv.textContent=VER; document.body.appendChild(vv);
     // install (PWA)
     var box=document.getElementById('install-box'); if(!box) return;
     var ev=null, ios=/iphone|ipad|ipod/i.test(navigator.userAgent), standalone=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
