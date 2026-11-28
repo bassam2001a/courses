@@ -6,8 +6,11 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0b6b5e">
 <title>مكتبة كورساتي</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script src="assets/theme.js?v=72"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b6b5e'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/styles.css?v=4">
+<link rel="stylesheet" href="assets/styles.css?v=72">
 </head>
 <body>
 <div class="wrap">
@@ -16,6 +19,8 @@
     <h1>كل كورساتك في مكان واحد</h1>
     <p>افتح القسم، خد الدروس بالترتيب، علّم اللي خلصته، واكتب ملاحظاتك — كل حاجة بتتحفظ على جهازك.</p>
   </header>
+
+  <div id="install-box" hidden></div>
 
   <main class="grid">
     <a class="card" href="aplus.html">
@@ -76,5 +81,6 @@
 
   <footer>الموقع خاص بيك — اللي بتعمله هنا (تقدم وملاحظات) بيتحفظ في المتصفح على جهازك.</footer>
 </div>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
 </body>
 </html>

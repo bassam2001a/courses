@@ -200,3 +200,25 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 .ob.off{background:#f2f4f7;color:var(--muted)}
 .ob.yt{background:#fdf1e3;color:var(--warn);border-color:#f3e3cd}
 .ob:empty{display:none}
+
+/* theme + install */
+.theme-btn{position:fixed;top:10px;left:10px;z-index:40;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;box-shadow:var(--shadow)}
+#install-box{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:18px;font-size:14px}
+#install-box[hidden]{display:none}
+html[data-theme=dark]{color-scheme:dark;--bg:#10161c;--card:#1a222b;--ink:#e9eef3;--muted:#a3adb8;--line:#2d3844;--accent:#4fd1bb;--accent-soft:#163630;--warn:#f0b35a;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3)}
+html[data-theme=dark] .tag.soon,html[data-theme=dark] .ob.yt,html[data-theme=dark] .notice{background:#3a2d17;border-color:#5a4522;color:#f0c27a}
+html[data-theme=dark] .progress .track{background:#2a343f}
+html[data-theme=dark] .chip[aria-pressed="true"],html[data-theme=dark] .btn.primary,html[data-theme=dark] .quiz-btn.pass,html[data-theme=dark] .tabs button[aria-pressed=true]{color:#04231e}
+html[data-theme=dark] .lesson.done,html[data-theme=dark] .lesson.locked{background:#161d25}
+html[data-theme=dark] .thumb{background:#222c36}
+html[data-theme=dark] .lesson.done .ttl{text-decoration-color:#586573}
+html[data-theme=dark] .dur,html[data-theme=dark] .ob.off,html[data-theme=dark] .note-btn:hover{background:#26303b}
+html[data-theme=dark] input,html[data-theme=dark] textarea,html[data-theme=dark] select,html[data-theme=dark] .q label,html[data-theme=dark] .qopt{background:#141b22;color:var(--ink)}
+html[data-theme=dark] .flash,html[data-theme=dark] .resume,html[data-theme=dark] .ob.on{border-color:#24524a}
+html[data-theme=dark] .resume-btn,html[data-theme=dark] .pdf-btn,html[data-theme=dark] .sheet,html[data-theme=dark] .mdl .box,html[data-theme=dark] .tabs button,html[data-theme=dark] .pdfov{background:var(--card);color:var(--ink)}
+html[data-theme=dark] .resume-btn,html[data-theme=dark] .pdf-btn{color:var(--accent)}
+html[data-theme=dark] .tabs button[aria-pressed=true]{background:var(--accent)}
+html[data-theme=dark] .res b.no,html[data-theme=dark] .err,html[data-theme=dark] .mdl .msg{color:#ff8a80}
+html[data-theme=dark] .lesson:hover{border-color:#415061}
+html[data-theme=dark] .btn,html[data-theme=dark] .chip{color:var(--ink)}
+html[data-theme=dark] .btn.primary{background:var(--accent)}
