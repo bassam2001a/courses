@@ -250,3 +250,6 @@ html[data-theme=dark] .lesson:hover{border-color:#34506e}
 .rs-line{display:flex;align-items:baseline;gap:8px;margin:2px 0}
 .rs-line .rs-t{flex:1;min-width:0}
 .acc+.daily{margin-top:12px}
+.brk{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;max-width:min(520px,calc(100vw - 24px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px}
+.brk .brk-t{flex:1 1 200px}
+.brk .brk-b{display:flex;gap:8px}

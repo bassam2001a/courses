@@ -78,6 +78,43 @@
     mark:mark, streak:streakText, milestone:milestone
   };
   if(!/(^|\/)(index\.html)?$/.test(location.pathname)) mark();
+  /* break reminder: 45 minutes of continuous playing */
+  var BK='aplus-break-v1', LIMIT=window.__BRK_LIMIT||2700, SNOOZE=600, GAP=300;
+  var bs={acc:0,last:0,pend:false}, bnode=null;
+  try{ var t0=JSON.parse(sessionStorage.getItem(BK)||'null'); if(t0) bs=t0; }catch(e){}
+  var SK='aplus-study-day';
+  function dkey(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+  function sget(){ try{ var o=JSON.parse(localStorage.getItem(SK)||'null'); if(o&&o.d===dkey()) return o.s|0; }catch(e){} return 0; }
+  function sadd(n){ try{ localStorage.setItem(SK,JSON.stringify({d:dkey(),s:sget()+n})); }catch(e){} }
+  function fmt(sec){ var m=Math.floor(sec/60), h=Math.floor(m/60); m=m%60;
+    if(h===0) return m<=1?'دقيقة':(m===2?'دقيقتين':(m<=10?m+' دقايق':m+' دقيقة'));
+    var hs=h===1?'ساعة':(h===2?'ساعتين':h+(h<=10?' ساعات':' ساعة'));
+    return m?hs+' و'+(m===1?'دقيقة':(m===2?'دقيقتين':(m<=10?m+' دقايق':m+' دقيقة'))):hs; }
+  function bsave(){ try{ sessionStorage.setItem(BK,JSON.stringify(bs)); }catch(e){} }
+  function fs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement); }
+  function bshow(){
+    if(bnode||!document.body) return;
+    var nm=Math.random()<.4?' يا هندسة':'';
+    bnode=document.createElement('div'); bnode.className='brk'; bnode.setAttribute('role','status');
+    bnode.innerHTML='<span class="brk-t"></span><span class="brk-b"><button type="button" class="btn primary" data-a="ok">تمام</button><button type="button" class="btn" data-a="sn">كمّل 10 دقايق</button></span>';
+    bnode.querySelector('.brk-t').textContent='بقالك 45 دقيقة بتذاكر'+nm+'. خد استراحة 5 دقايق. ذاكرت النهارده '+fmt(sget())+'.';
+    bnode.addEventListener('click',function(e){ var a=e.target.getAttribute&&e.target.getAttribute('data-a'); if(!a) return;
+      if(a==='ok') bs.acc=0; else bs.acc=Math.max(0,LIMIT-SNOOZE);
+      bs.pend=false; bsave(); bnode.remove(); bnode=null; document.title=document.title.replace(/^⏰ /,''); });
+    document.body.appendChild(bnode);
+  }
+  function btick(){
+    var pl=window.AplusIsPlaying&&window.AplusIsPlaying(), now=Date.now();
+    if(pl){ bs.acc+=5; bs.last=now; sadd(5); }
+    else if(bs.last&&now-bs.last>GAP*1000){ bs.acc=0; bs.last=0; bs.pend=false; }
+    if(bs.acc>=LIMIT&&!bnode){ if(fs()){ if(!bs.pend){ bs.pend=true; document.title='⏰ '+document.title.replace(/^⏰ /,''); } } else bshow(); }
+    else if(bs.pend&&!fs()&&!bnode) bshow();
+    bsave();
+  }
+  document.addEventListener('fullscreenchange',function(){ if(!fs()&&bs.pend&&!bnode) bshow(); });
+  if(window.AplusIsPlaying!==undefined||/(aplus|network|english)\.html/.test(location.pathname)) setInterval(btick,5000);
+  window.Motiv.studyToday=sget; window.Motiv.fmt=fmt;
+  window.Motiv.breakNow=function(){ bs.acc=LIMIT; bs.last=Date.now(); btick(); };
   window.addEventListener('DOMContentLoaded',function(){
     var el=document.getElementById('daily'); if(!el) return;
     el.innerHTML='<span class="dl">عبارة النهارده</span><span class="dt"></span>'; el.querySelector('.dt').textContent=Motiv.daily(); el.hidden=false;

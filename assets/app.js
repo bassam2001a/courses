@@ -1,13 +1,16 @@
 (function(){
   var KEY_R='aplus-resume-v1', KEY_P='aplus-progress-v1', KEY_N='aplus-notes-v1', KEY_Q='aplus-quiz-v1';
-  var data = window.APLUS || [], QUIZ = window.QUIZ || {}, PASS = 60;
+  var COURSE = window.COURSE || {key:'aplus',title:'CompTIA A+',file:'A+'};
+  var data = window.COURSE_DATA || window.APLUS || [], QUIZ = window.QUIZ || {}, PASS = 60;
   var progress = {}, notes = {}, quiz = {}, resume = {last:null,pos:{}};
   try{ var rr=JSON.parse(localStorage.getItem(KEY_R)||'null'); if(rr&&rr.pos) resume=rr; }catch(e){}
   var saveR=function(){ try{localStorage.setItem(KEY_R,JSON.stringify(resume));}catch(e){} if(window.AplusSync)AplusSync.dirty(); };
   var YT_RE=/(?:^|\|\s*)(\d{1,2})\s*-\s*/;
   function ytNum(l){ var m=YT_RE.exec(l.title); return m?m[1]:null; }
-  function numLabel(l){ var y=ytNum(l); return y?pad(+y):'مقدمة '+l.n; }
-  function cleanTitle(l){ return ytNum(l)?l.title.replace(YT_RE,'').trim():l.title; }
+  function numLabel(l){ if(l.num) return l.num; var y=ytNum(l); return y?pad(+y):'مقدمة '+l.n; }
+  function cleanTitle(l){ if(l.num) return l.title; return ytNum(l)?l.title.replace(YT_RE,'').trim():l.title; }
+  function getLast(){ return COURSE.key==='aplus'?resume.last:(resume.lastBy&&resume.lastBy[COURSE.key])||null; }
+  function setLast(id){ if(COURSE.key==='aplus') resume.last=id; else { resume.lastBy=resume.lastBy||{}; resume.lastBy[COURSE.key]=id; } }
   var clock=function(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+pad(m):m)+':'+pad(x); };
   try{ progress = JSON.parse(localStorage.getItem(KEY_P)||'{}')||{}; }catch(e){ progress={}; }
   try{ notes = JSON.parse(localStorage.getItem(KEY_N)||'{}')||{}; }catch(e){ notes={}; }
@@ -38,19 +41,20 @@
   function setFlash(msg){ flash=msg; if(flashEl){ flashEl.textContent=msg; flashEl.hidden=!msg; } }
 
   var ytp=null, ytReady=false, curLesson=null, pending=null, tick=null, apiLoading=false;
+  window.AplusIsPlaying=function(){ try{ if(ytp&&ytReady&&ytp.getPlayerState&&ytp.getPlayerState()===1) return true; }catch(e){} var m=document.getElementById('mv'); return !!(m&&!m.hidden&&!m.paused&&!m.ended); };
   function byId(id){ for(var i=0;i<data.length;i++) if(data[i].id===id) return data[i]; return null; }
   function savePos(){
     if(window.AplusMedia&&AplusMedia.active()) return;
     if(!ytp||!ytReady||!curLesson||!ytp.getCurrentTime) return;
     var t=0; try{ t=ytp.getCurrentTime()||0; }catch(e){ return; }
     if(t<3) return;
-    resume.pos[curLesson.id]=Math.floor(t); resume.last=curLesson.id; resume.ts=Date.now(); saveR();
+    resume.pos[curLesson.id]=Math.floor(t); setLast(curLesson.id); resume.ts=Date.now(); saveR();
   }
   function onState(ev){
     if(ev.data===1){ if(!tick) tick=setInterval(function(){ savePos(); paintResume(); },4000); }
     else { if(tick){ clearInterval(tick); tick=null; } if(ev.data===2) { savePos(); paintResume(); } }
     if(ev.data===0 && curLesson){
-      resume.pos[curLesson.id]=0; var i=data.indexOf(curLesson); resume.last=(data[i+1]||curLesson).id; saveR(); paintResume(); render();
+      resume.pos[curLesson.id]=0; var i=data.indexOf(curLesson); setLast((data[i+1]||curLesson).id); saveR(); paintResume(); render();
     }
   }
   function ensureApi(cb){
@@ -82,7 +86,7 @@
     pl.hidden=false;
     if(startAt==null) startAt=resume.pos[l.id]||0;
     if(startAt>0 && l.dur && startAt>l.dur-15) startAt=0;
-    curLesson=l; resume.last=l.id; saveR();
+    curLesson=l; setLast(l.id); saveR();
     winStart=data.indexOf(l); render(); paintPlayerQuiz(l);
     document.getElementById('p-title').textContent=numLabel(l)+' · '+cleanTitle(l);
     document.getElementById('p-open').href='https://www.youtube.com/watch?v='+l.id+(startAt?'&t='+startAt+'s':'');
@@ -91,8 +95,8 @@
       if(AplusMedia.canPlay(l)){
         try{ if(ytp&&ytReady&&ytp.pauseVideo) ytp.pauseVideo(); }catch(e){}
         AplusMedia.play(l,startAt,{
-          save:function(t){ if(t<3) return; resume.pos[l.id]=Math.floor(t); resume.last=l.id; resume.ts=Date.now(); saveR(); paintResume(); var o=document.getElementById('p-open'); if(o) o.href='https://www.youtube.com/watch?v='+l.id+'&t='+Math.floor(t)+'s'; },
-          end:function(){ resume.pos[l.id]=0; var i=data.indexOf(l); resume.last=(data[i+1]||l).id; saveR(); paintResume(); render(); }
+          save:function(t){ if(t<3) return; resume.pos[l.id]=Math.floor(t); setLast(l.id); resume.ts=Date.now(); saveR(); paintResume(); var o=document.getElementById('p-open'); if(o) o.href='https://www.youtube.com/watch?v='+l.id+'&t='+Math.floor(t)+'s'; },
+          end:function(){ resume.pos[l.id]=0; var i=data.indexOf(l); setLast((data[i+1]||l).id); saveR(); paintResume(); render(); }
         });
         paintResume(); return;
       }
@@ -112,7 +116,7 @@
 
   function paintResume(){
     var box=document.getElementById('resume'); if(!box) return;
-    var l=resume.last&&byId(resume.last);
+    var l=getLast()&&byId(getLast());
     if(!l){ box.hidden=true; return; }
     var t=resume.pos[l.id]||0;
     box.hidden=false;
@@ -124,7 +128,7 @@
     var box=document.createElement('div'); box.className='quiz'; box.hidden=true;
     var qs=QUIZ[l.id].q, gate=!!(window.QUIZ_GATE&&QUIZ_GATE[l.id]), nxt=data[data.indexOf(l)+1];
     var step=0, answers=[];
-    function note(){ return '<p class="quiz-note">'+qs.length+' أسئلة من ملخص الدرس. اضغط على الإجابة وهتنقل للسؤال اللي بعده. لازم '+PASS+'% ('+Math.ceil(qs.length*PASS/100)+' من '+qs.length+')'+(gate&&nxt?' عشان يتفتح الدرس اللي بعده وتقدر تعلّم الدرس ده «خلصت».':' عشان تقدر تعلّم الدرس ده «خلصت».')+'</p>'; }
+    function note(){ return '<p class="quiz-note">'+qs.length+(COURSE.topicQuiz?' أسئلة على موضوع الدرس (مش من كلام المدرّس بالحرف). ':' أسئلة من ملخص الدرس. ')+'اضغط على الإجابة وهتنقل للسؤال اللي بعده. لازم '+PASS+'% ('+Math.ceil(qs.length*PASS/100)+' من '+qs.length+')'+(gate&&nxt?' عشان يتفتح الدرس اللي بعده وتقدر تعلّم الدرس ده «خلصت».':' عشان تقدر تعلّم الدرس ده «خلصت».')+'</p>'; }
     function showResult(){
       var correct=0, detail='';
       qs.forEach(function(item, i){
@@ -268,18 +272,18 @@
   });
   var cont=document.getElementById('cont');
   if(cont) cont.addEventListener('click', function(){
-    var l=resume.last&&byId(resume.last);
+    var l=getLast()&&byId(getLast());
     if(!l){ for(var i=0;i<data.length;i++){ if(!progress[data[i].id]){ l=data[i]; break; } } }
     if(!l){ alert('خلصت كل الدروس المتاحة 👏'); return; }
     play(l);
   });
   var exp=document.getElementById('export');
   if(exp) exp.addEventListener('click', function(){
-    var lines=['ملاحظات كورس CompTIA A+ — '+new Date().toLocaleDateString('ar-EG'),''];
+    var lines=['ملاحظات كورس '+COURSE.title+' — '+new Date().toLocaleDateString('ar-EG'),''];
     data.forEach(function(l){ if(notes[l.id]&&notes[l.id].trim()){ lines.push(numLabel(l)+'. '+cleanTitle(l)); lines.push(notes[l.id].trim()); lines.push(''); } });
     if(lines.length<=2){ alert('مفيش ملاحظات لسه.'); return; }
     var blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
-    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ملاحظات-كورس-A+.txt'; a.click();
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ملاحظات-كورس-'+COURSE.file+'.txt'; a.click();
   });
   paintProgress(); paintResume(); render();
 })();

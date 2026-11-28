@@ -60,6 +60,7 @@
     for(k in (newer.pos||{})) o.resume.pos[k]=newer.pos[k];
     var sa=ra.streak, sb=rb.streak, sw=!sa?sb:!sb?sa:(sb.last>sa.last?sb:sa.last>sb.last?sa:((sb.n||0)>(sa.n||0)?sb:sa));
     if(sw) o.resume.streak=sw;
+    var lb={}; for(k in (older.lastBy||{})) lb[k]=older.lastBy[k]; for(k in (newer.lastBy||{})) lb[k]=newer.lastBy[k]; if(Object.keys(lb).length) o.resume.lastBy=lb;
     return o;
   }
   function same(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
