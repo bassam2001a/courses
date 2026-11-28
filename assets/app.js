@@ -53,7 +53,7 @@
     window.onYouTubeIframeAPIReady=function(){ if(prev) prev(); cb(); };
     if(!apiLoading){ apiLoading=true; var sc=document.createElement('script'); sc.src='https://www.youtube.com/iframe_api'; document.head.appendChild(sc); }
   }
-  var QUIZ_GATE_ON=false; /* set to true to require passing the previous lesson's quiz */
+  var QUIZ_GATE_ON=true; /* set to true to require passing the previous lesson's quiz */
   function gatedBy(l){ if(!QUIZ_GATE_ON) return null; var i=data.indexOf(l); if(i<=0) return null; var p=data[i-1]; return (window.QUIZ_GATE&&QUIZ_GATE[p.id]&&QUIZ[p.id]&&!passed(p.id))?p:null; }
   function paintPlayerQuiz(l){
     var pq=document.getElementById('p-quiz'); if(!pq) return;
@@ -199,7 +199,7 @@
               '<span class="ob ob-v" data-k="v"></span>'+((window.AplusMedia&&AplusMedia.hasPdf(l))?'<span class="ob ob-p" data-k="p"></span>':'')+
               (qz?'<button class="quiz-btn'+(qp?' pass':'')+'" type="button">'+(qp?'اختبار ✓':'اختبار')+'</button>':'')+
             '</div>'+
-            (gatedBy(l)?'<div class="lock">🔒 اتفرج على الدرس اللي قبله وحل اختباره الأول.</div>':'')+(needPass?'<div class="lock">'+(window.QUIZ_GATE&&QUIZ_GATE[l.id]?'حل اختبار الدرس بعد ما تتفرج عليه عشان الدرس اللي بعده يتفتح وتقدر تعلّمه «خلصت».':'نجح في اختبار الدرس عشان تقدر تعلّمه «خلصت».')+'</div>':'')+
+            (gatedBy(l)?'<div class="lock">🔒 اتفرج على الدرس اللي قبله وحل اختباره الأول.</div>':'')+''+
           '</div>'+
         '</div>'+
         '<div class="note-box" hidden><textarea placeholder="اكتب ملاحظاتك على الدرس ده…">'+esc(notes[l.id]||'')+'</textarea></div>';

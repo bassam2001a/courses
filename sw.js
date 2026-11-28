@@ -1,5 +1,5 @@
-var C='aplus-shell-v72';
-var SHELL=['./','aplus.html','index.html','controlexa.html','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','assets/theme.js?v=72','assets/styles.css?v=72','assets/account.js?v=72','assets/app.js?v=72','assets/media.js?v=72','data/aplus.js?v=72','data/media.js?v=72','data/quizzes.js?v=72','data/quiz-b1.js?v=72','data/quiz-b2.js?v=72','data/quiz-b3.js?v=72','data/quiz-b4.js?v=72','data/quiz-b5.js?v=72','data/quiz-pdf.js?v=72'];
+var C='aplus-shell-v73';
+var SHELL=['./','aplus.html','index.html','controlexa.html','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','assets/theme.js?v=73','assets/styles.css?v=73','assets/account.js?v=73','assets/app.js?v=73','assets/media.js?v=73','data/aplus.js?v=73','data/media.js?v=73','data/quizzes.js?v=73','data/quiz-b1.js?v=73','data/quiz-b2.js?v=73','data/quiz-b3.js?v=73','data/quiz-b4.js?v=73','data/quiz-b5.js?v=73','data/quiz-pdf.js?v=73'];
 self.addEventListener('install',function(e){ e.waitUntil(caches.open(C).then(function(c){ return Promise.all(SHELL.map(function(u){ return c.add(u).catch(function(){}); })); }).then(function(){ return self.skipWaiting(); })); });
 self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return k.indexOf('aplus-shell-')===0&&k!==C; }).map(function(k){ return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener('fetch',function(e){

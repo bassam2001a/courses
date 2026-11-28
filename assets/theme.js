@@ -5,7 +5,7 @@
   function cur(){ return get()||sys(); }
   function apply(t){
     root.setAttribute('data-theme',t);
-    var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t==='dark'?'#10161c':'#0b6b5e');
+    var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',t==='dark'?'#0b1623':'#0369a1');
     var b=document.getElementById('theme-btn'); if(b){ b.textContent=t==='dark'?'☀ فاتح':'☾ داكن'; b.setAttribute('aria-label',t==='dark'?'الوضع الفاتح':'الوضع الداكن'); }
   }
   apply(cur());

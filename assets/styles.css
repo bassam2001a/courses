@@ -1,6 +1,6 @@
 :root{
   --bg:#f5f6f8; --card:#ffffff; --ink:#141b22; --muted:#67707a;
-  --line:#e3e7ec; --accent:#0b6b5e; --accent-soft:#e6f2ef; --warn:#b45309;
+  --line:#e3e7ec; --accent:#0369a1; --accent-soft:#e6f4fb; --warn:#b45309;
   --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
 }
 *{box-sizing:border-box}
@@ -111,10 +111,10 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 .res b.ok{color:var(--accent)}
 .res b.no{color:#b42318}
 .why{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
-.flash{background:var(--accent-soft);border:1px solid #cfe6e1;color:var(--accent);border-radius:12px;padding:10px 13px;font-size:13.5px;font-weight:600;margin:0 0 12px}
+.flash{background:var(--accent-soft);border:1px solid #c3e3f3;color:var(--accent);border-radius:12px;padding:10px 13px;font-size:13.5px;font-weight:600;margin:0 0 12px}
 .flash[hidden]{display:none}
 
-.resume{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-soft);border:1px solid #cfe6e1;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:14px;line-height:1.6}
+.resume{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-soft);border:1px solid #c3e3f3;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:14px;line-height:1.6}
 .resume[hidden]{display:none}
 .resume .at{color:var(--accent);font-weight:700;font-size:13px}
 .resume .btn{white-space:nowrap}
@@ -196,7 +196,7 @@ input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);cursor:po
 }
 
 .ob{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;line-height:1.5}
-.ob.on{background:var(--accent-soft);color:var(--accent);border-color:#cfe6e1;font-weight:700}
+.ob.on{background:var(--accent-soft);color:var(--accent);border-color:#c3e3f3;font-weight:700}
 .ob.off{background:#f2f4f7;color:var(--muted)}
 .ob.yt{background:#fdf1e3;color:var(--warn);border-color:#f3e3cd}
 .ob:empty{display:none}
@@ -222,3 +222,17 @@ html[data-theme=dark] .res b.no,html[data-theme=dark] .err,html[data-theme=dark]
 html[data-theme=dark] .lesson:hover{border-color:#415061}
 html[data-theme=dark] .btn,html[data-theme=dark] .chip{color:var(--ink)}
 html[data-theme=dark] .btn.primary{background:var(--accent)}
+
+/* palette D: ocean */
+:root{--grad:linear-gradient(135deg,#0891b2 0%,#2563eb 100%)}
+.chip[aria-pressed="true"],.btn.primary,.quiz-btn.pass,.tabs button[aria-pressed=true]{background:var(--grad);border-color:transparent;color:#fff}
+.progress .fill,.brand .dot{background:var(--grad)}
+html[data-theme=dark]{--bg:#0b1623;--card:#122133;--line:#1f3248;--ink:#e6eef7;--muted:#9fb1c5;--accent:#5cc8f0;--accent-soft:#12304a}
+html[data-theme=dark] .flash,html[data-theme=dark] .resume,html[data-theme=dark] .ob.on{border-color:#1f4a6b}
+html[data-theme=dark] .chip[aria-pressed="true"],html[data-theme=dark] .btn.primary,html[data-theme=dark] .quiz-btn.pass,html[data-theme=dark] .tabs button[aria-pressed=true]{background:var(--grad);color:#fff}
+html[data-theme=dark] .progress .track{background:#1f3248}
+html[data-theme=dark] .lesson.done,html[data-theme=dark] .lesson.locked{background:#0e1a29}
+html[data-theme=dark] .thumb{background:#1a2b3f}
+html[data-theme=dark] .dur,html[data-theme=dark] .ob.off,html[data-theme=dark] .note-btn:hover{background:#1a2b3f}
+html[data-theme=dark] input,html[data-theme=dark] textarea,html[data-theme=dark] select,html[data-theme=dark] .q label,html[data-theme=dark] .qopt{background:#0e1a29}
+html[data-theme=dark] .lesson:hover{border-color:#34506e}
