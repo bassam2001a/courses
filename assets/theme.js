@@ -1,5 +1,5 @@
 (function(){
-  var VER='v74', K='aplus-theme', root=document.documentElement;
+  var VER='v75', K='aplus-theme', root=document.documentElement;
   function get(){ try{ return localStorage.getItem(K); }catch(e){ return null; } }
   function sys(){ return window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; }
   function cur(){ return get()||sys(); }

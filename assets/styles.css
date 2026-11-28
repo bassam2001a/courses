@@ -238,3 +238,12 @@ html[data-theme=dark] input,html[data-theme=dark] textarea,html[data-theme=dark]
 html[data-theme=dark] .lesson:hover{border-color:#34506e}
 .num{min-width:26px;white-space:nowrap}
 .ver{position:fixed;top:4px;left:50%;transform:translateX(-50%);z-index:39;font-size:10px;line-height:1;color:var(--muted);opacity:.7;pointer-events:none;direction:ltr}
+/* motivation */
+.daily{margin:0 0 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px}
+.daily[hidden]{display:none}
+.daily .dl{font-size:12px;color:var(--accent);font-weight:700}
+.daily .dt{font-size:15.5px;line-height:1.7}
+.mv-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.mv-chips[hidden]{display:none}
+.mchip{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:700}
+.mnote{font-size:13px;color:var(--muted)}

@@ -32,6 +32,8 @@
     var c=counts(), p=c.t? Math.round(c.d*100/c.t):0, left=document.getElementById('left');
     fill.style.width=p+'%'; cnt.textContent='خلصت '+c.d+' من '+c.t; pct.textContent=p+'%';
     if(left) left.textContent='باقي '+(c.t-c.d)+' درس';
+    var mv=document.getElementById('mv-chips');
+    if(mv&&window.Motiv){ var a=[]; var st=Motiv.streak(), ms=Motiv.milestone(p); if(st) a.push('<span class="mchip">'+esc(st)+'</span>'); if(ms) a.push('<span class="mnote">'+esc(ms)+'</span>'); mv.innerHTML=a.join(''); mv.hidden=!a.length; }
   }
   function setFlash(msg){ flash=msg; if(flashEl){ flashEl.textContent=msg; flashEl.hidden=!msg; } }
 
@@ -140,7 +142,7 @@
       box.innerHTML=html;
       bindRes();
       if(pass){
-        setFlash('نجحت في اختبار «'+cleanTitle(l)+'» بـ'+score+'% — الدرس اتعلّم «خلصت» تلقائي ✓');
+        setFlash(window.Motiv?Motiv.quiz(score):'نجحت بـ'+score+'% ✓');
         render();
         if(!inPlayer){ var again=list.querySelector('[data-id="'+l.id+'"] .quiz'); if(again){ again.hidden=false; } }
       }
@@ -212,7 +214,7 @@
       var pb=li.querySelector('.pdf-btn'); if(pb) pb.addEventListener('click',function(){ AplusMedia.openPdf(l,setFlash); });
       var chk=li.querySelector('input[type=checkbox]');
       chk.addEventListener('change', function(){
-        if(chk.checked) progress[l.id]=true; else delete progress[l.id];
+        if(chk.checked){ progress[l.id]=true; } else delete progress[l.id];
         saveP(); li.classList.toggle('done', !!progress[l.id]); paintProgress();
       });
       var nb=li.querySelector('.note-btn'), box=li.querySelector('.note-box'), ta=box.querySelector('textarea');
