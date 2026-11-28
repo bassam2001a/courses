@@ -79,7 +79,7 @@
       return (function pump(){ return rd.read().then(function(x){ if(x.done) return new Blob(parts,{type:'video/mp4'}); parts.push(x.value); got+=x.value.length; if(tot&&onp) onp(Math.round(got*100/tot)); return pump(); }); })();
     });
   }
-  function saveAll(){
+  function saveAll(mode){
     if(busy) return;
     if(!hasCache()){ st('المتصفح ده مش بيدعم الحفظ.'); return; }
     gate().then(function(){
@@ -87,6 +87,7 @@
       var wl=null; try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(function(x){ wl=x; }).catch(function(){}); }catch(e){}
       if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(function(){});
       var pk=Object.keys(P).map(Number).sort(function(a,b){return a-b;}), vk=Object.keys(V).map(Number).sort(function(a,b){return a-b;});
+      if(mode==='v') pk=[]; if(mode==='p') vk=[];
       var total=pk.length+vk.length, done=0, fail=0, skipped=0, full=false;
       function ref(){ var l=cur; if(l) paintExtra(l,lastSt); }
       st('بجهّز الحفظ…'); ref();
@@ -162,11 +163,11 @@
     var x=$('p-extra'); if(!x) return;
     isSaved(l).then(function(saved){
       if(!cur||cur!==l) return;
-      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+(allRun?'<button class="btn" type="button" id="p-stop">إيقاف الحفظ ✕</button>':'<button class="btn primary" type="button" id="p-all">حفظ الكل أوفلاين (ملخصات + فيديوهات)</button><button class="btn" type="button" id="p-allpdf">الملخصات بس</button>')+'<span class="off-st" id="p-st">'+(msg||(allRun?lastSt:''))+'</span>';
+      x.innerHTML='<button class="btn" type="button" id="p-off">'+(saved?'محفوظ أوفلاين ✓ (مسح)':'حفظ للأوفلاين')+'</button>'+(P[l.n]?'<button class="btn" type="button" id="p-pdf">ملخص PDF</button>':'')+(allRun?'<button class="btn" type="button" id="p-stop">إيقاف الحفظ ✕</button>':'<button class="btn primary" type="button" id="p-allvid">حفظ كل الفيديوهات أوفلاين</button><button class="btn primary" type="button" id="p-allpdf">حفظ كل الملخصات (PDF) أوفلاين</button>')+'<span class="off-st" id="p-st">'+(msg||(allRun?lastSt:''))+'</span>';
       $('p-off').onclick=function(){ saved?removeSaved(l):saveOffline(l); };
       var pb=$('p-pdf'); if(pb) pb.onclick=function(){ openPdf(l); };
-      var ap=$('p-allpdf'); if(ap) ap.onclick=savePdfs;
-      var aa=$('p-all'); if(aa) aa.onclick=saveAll;
+      var ap=$('p-allpdf'); if(ap) ap.onclick=function(){ saveAll('p'); };
+      var aa=$('p-allvid'); if(aa) aa.onclick=function(){ saveAll('v'); };
       var sp=$('p-stop'); if(sp) sp.onclick=function(){ allStop=true; st('بوقّف بعد الملف الحالي…'); };
     });
   }
